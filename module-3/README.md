@@ -1,35 +1,36 @@
-# Module 3 - Adding a Data Tier with Amazon DynamoDB
+# 모듈 3: Amazon DynamoDB로 데이터 계층 추가
 
 ![Architecture](/images/module-3/architecture-module-3.png)
 
-**Time to complete:** 20 minutes
+**완료에 필요한 시간:** 20분
 
 ---
-**Short of time?:** If you are short of time, refer to the completed reference AWS CDK code in `module-3/cdk`
+**시간이 부족한 경우:** `module-3/cdk`에 있는 완전한 레퍼런스 AWS CDK 코드를 참고하세요
 
 ---
 
-**Services used:**
+**사용된 서비스:**
+
 * [Amazon DynamoDB](https://aws.amazon.com/dynamodb/)
 
-### Overview
+### 개요
 
-Now that you have a service deployed and a working CI/CD pipeline to deliver changes to that service automatically whenever you update your code repository, you can quickly move new application features from conception to available for your Mythical Mysfits customers.  With this increased agility, let's add another foundational piece of functionality to the Mythical Mysfits website architecture, a data tier.  In this module you will create a table in [Amazon DynamoDB](https://aws.amazon.com/dynamodb/), a managed and scalable NoSQL database service on AWS with super fast performance.  Rather than have all of the Mysfits be stored in a static JSON file, we will store them in a database to make the websites future more extensible and scalable.
+이제 배포된 서비스와 작동하는 CI/CD 파이프라인을 통해 코드 리포지토리에 변경사항이 발생할 때 마다 서비스에 자동으로 배포되어 새로운 애플리케이션 기능을 구상에서부터 Mythical Mysfits 고객이 사용할 수 있도록 신속하게 이동할 수 있습니다. 향상된 민첩성과 함께 Mythical Mysfits 웹사이트 아키텍처에 데이터 계층인 또 다른 기본 기능을 추가해보겠습니다. 이 모듈에서는 AWS의 매우 빠른 성능을 제공하며 관리되고 확장 가능한 NoSQL 데이터베이스 서비스인 [Amazon DynamoDB](https://aws.amazon.com/dynamodb/)에 테이블을 추가할 것입니다. 모든 Mysfits를 정적 JSON 파일에 저장하지 않고, 웹사이트의 기능을 쉽게 추가하고 확장될 수 있도록 데이터베이스에 저장합니다.
 
-### Adding a NoSQL Database to Mythical Mysfits
+### Mythical Mysfits에 NoSQL 데이터베이스 추가
 
-#### Create a DynamoDB Table
+#### DynamoDB 테이블 생성
 
-To add a DynamoDB table to the architecture, we will write another CloudFormation stack using AWS CDK that defines a table called **MysfitsTable**. This table will have a primary index defined by a hash key attribute called **MysfitId**, and two more secondary indexes.  The first secondary index will have the hash key of **GoodEvil** and a range key of **MysfitId**, and the other secondary index will have the hash key of **LawChaos** and a range key of **MysfitId**.  These two secondary indexes will allow us to execute queries against the table to retrieve all of the mysfits that match a given Species or Alignment to enable the filter functionality.
+DynamoDB 테이블을 아키텍처에 추가하기 위해 AWS CDK를 사용하여 다른 CloudFormation 스택을 작성하겠습니다. 이 테이블에는 **MysfitId**라는 해시 키 속성으로 정의된 인덱스와 두개의 보조 인덱스가 있습니다. 첫번째 보조 인덱스는 **GoodEvil**의 해시 키와 **MysfitId**의 범위 키를 가지며, 두번째 보조 인덱스는 **LawChaos** 해시키와 **MysfitId** 범위 키를 가집니다. 이 두 보조 인덱스를 통해 테이블에 대한 쿼리를 실행하여 주어진 종 또는 정렬과 일치하는 모든 mysfits를 검색하여 필터 기능을 활성화 할 수 있습니다.
 
-Create a new file in the `lib` folder called `dynamodb-stack.ts`.
+`lib` 폴더에 `dynamodb-stack.ts`이라는 파일을 생성합니다:
 
 ```sh
 cd ~/environment/workshop/cdk
 touch lib/dynamodb-stack.ts
 ```
 
-Within the file you just created, define the skeleton CDK Stack structure as we have done before, this time naming the class  `DynamoDbStack`:
+방금 생성한 파일에 이전에 했던 것 처럼 스켈레톤 CDK 스택 구조를 정의합니다. 이번에는 클래스명을 `DynamoDbStack`이라고 지정합니다:
 
 ```typescript
 import cdk = require('@aws-cdk/core');
@@ -43,13 +44,12 @@ export class DynamoDbStack extends cdk.Stack {
 }
 ```
 
-Then, add the DynamoDbStack to our CDK application definition in `bin/cdk.ts`, when done, your `bin/cdk.ts` should look like this:
+그런 다음 `bin/cdk.ts`의 CDK 애플리케이션 정의에 DynamoDbStack을 추가합니다. 추가 후 `bin/cdk.ts` 파일은 다음과 같아야합니다:
 
 ```typescript
 #!/usr/bin/env node
-
-import cdk = require("@aws-cdk/core");
 import 'source-map-support/register';
+import cdk = require("@aws-cdk/core");
 import { WebApplicationStack } from "../lib/web-application-stack";
 import { NetworkStack } from "../lib/network-stack";
 import { EcrStack } from "../lib/ecr-stack";
@@ -75,13 +75,13 @@ const dynamoDbStack = new DynamoDbStack(app, "MythicalMysfits-DynamoDB", {
 });
 ```
 
-As we have done previously, we need to install the CDK NPM package for AWS DynamoDB:
+이전에 했던 것 처럼 AWS DynamoDB CDK NPM 패키지를 설치해야 합니다:
 
 ```sh
-npm install --save-dev @aws-cdk/aws-dynamodb@1.9.0
+npm install --save-dev @aws-cdk/aws-dynamodb@1.14.0
 ```
 
-Within the `dynamodb-stack.ts` file, import the required modules:
+`dynamodb-stack.ts`파일 안에 필요한 모듈을 import 합니다:
 
 ```typescript
 import cdk = require("@aws-cdk/core");
@@ -91,7 +91,7 @@ import ec2 = require("@aws-cdk/aws-ec2");
 import ecs = require("@aws-cdk/aws-ecs");
 ```
 
-Then define the following properties interface to define what constructs this stack depends upon:
+다음 속성 인터페이스를 정의하여 스택이 의존하는 컨스트럭츠를 정의합니다:
 
 ```typescript
 interface DynamoDbStackProps extends cdk.StackProps {
@@ -100,13 +100,13 @@ interface DynamoDbStackProps extends cdk.StackProps {
 }
 ```
 
-Now change the constructor of your DBStack to require your properties object.
+이제 속성 객체를 인자로 받도록 DBStack의 생성자를 변경합니다:
 
 ```typescript
   constructor(scope: cdk.Construct, id: string, props: DynamoDbStackProps) {
 ```
 
-Next, we want to define a VPC endpoint to allow a secure path for traffic to travel between our VPC and the DynamoDB database:
+다음으로 트래픽이 VPC와 DynamoDB 데이터베이스간에 안전하게 이동할 수 있도록 VPC 엔드포인트를 정의합니다:
 
 ```typescript
 const dynamoDbEndpoint = props.vpc.addGatewayEndpoint("DynamoDbEndpoint", {
@@ -126,7 +126,7 @@ dynamoDbEndpoint.addToPolicy(
 );
 ```
 
-Next, we need to define the DynamoDB table; within the `DynamoDbStack` class write/copy the following code:
+다음으로 DynamoDB 테이블을 정의해야합니다. `DynamoDbStack` 클래스에서 다음 코드를 작성합니다:
 
 ```typescript
 export class DynamoDbStack extends cdk.Stack {
@@ -136,7 +136,7 @@ export class DynamoDbStack extends cdk.Stack {
     ...
 ```
 
-Within the constructor write/copy the following code:
+컨스트럭츠에서 다음 코드를 작성합니다:
 
 ```typescript
 this.table = new dynamodb.Table(this, "Table", {
@@ -176,7 +176,7 @@ this.table.addGlobalSecondaryIndex({
 });
 ```
 
-Last but not least, we need to allow our ECS Cluster access to our DynamoDB by adding an IAM Role defining the permissions required:
+마지막으로 ECS 클러스터가 DynamoDB에 접근할 수 있도록 필요한 권한을 정의하는 IAM 역할을 추가합니다:
 
 ```typescript
 const fargatePolicy = new iam.PolicyStatement();
@@ -196,22 +196,22 @@ props.fargateService.taskDefinition.addToTaskRolePolicy(
 );
 ```
 
-With that done, now we want to deploy the DynamoDB table.  Make sure your CDK application compiles without error and deploy your application to your AWS account.
+완료 후 DynamoDB 테이블을 배포합니다. CDK 애플리케이션이 에러 없이 컴파일된걸 확인하고 애플리케이션을 배포합니다:
 
 ```sh
 npm run build
 cdk deploy MythicalMysfits-ECS MythicalMysfits-DynamoDB
 ```
 
-You will be prompted with a messages such as `Do you wish to deploy these changes (y/n)?` to which you should respond by typing `y`
+`Do you wish to deploy these changes (y/n)?`와 같은 메시지가 표시되면 `y`를 입력합니다.
 
-After the command runs, you can view the details of your newly created table by executing the following AWS CLI command in the terminal:
+배포가 완료된 후 터미널에서 다음 AWS CLI 명령을 실행하여 새로 생성된 테이블의 세부 정보를 볼 수 있습니다:
 
 ```sh
 aws dynamodb describe-table --table-name MysfitsTable
 ```
 
-If we execute the following command to retrieve all of the items stored in the table, you'll see that the table is empty:
+테이블에 저장된 모든 아이템을 확인하기 위해 다음 명령을 실행하면, 테이블이 비어있음을 알 수 있습니다:
 
 ```sh
 aws dynamodb scan --table-name MysfitsTable
@@ -226,34 +226,34 @@ aws dynamodb scan --table-name MysfitsTable
 }
 ```
 
-#### Add Items to the DynamoDB Table
+#### DynamoDB 테이블에 아이템 추가
 
-Also provided is a JSON file that can be used to batch insert a number of Mysfit items into this table.  This will be accomplished through the DynamoDB API **BatchWriteItem.** To call this API using the provided JSON file, execute the following terminal command (the response from the service should report that there are no items that went unprocessed):
+DynamoDB API **BatchWriteItem**을 사용하여 제공된 JSON 파일로 테이블에 Mysfit 아이템을 일괄 삽입할 수 있습니다. 이를 위해 터미널에서 다음 명령을 실행합니다 (처리되지 않은 항목이 없다는 응답이 나와야합니다):
 
 ```
 aws dynamodb batch-write-item --request-items file://~/environment/workshop/source/module-3/data/populate-dynamodb.json
 ```
 
-Now, if you run the same command to scan all of the table contents, you'll find the items have been loaded into the table:
+이제 위의 아이템 확인 명령을 다시 실행하여 테이블을 스캔하면 테이블에 항목이 추가된 걸 볼 수 있습니다:
 
 ```
 aws dynamodb scan --table-name MysfitsTable
 ```
 
-### Committing The First *Real* Code change
+### 최초 *실제* 코드 변경 커밋
 
-#### Copy the Updated Flask Service Code
-Now that we have our data included in the table, let's modify our application code to read from this table instead of returning the static JSON file that was used in Module 2.  We have included a new set of Python files for your Flask microservice, but now instead of reading the static JSON file will make a request to DynamoDB.
+#### 업데이트 된 Flask 서비스 코드 복사
+이제 테이블에 데이터를 로드하였으니 애플리케이션 코드를 변경하여 모듈 2에서 사용한 정적 JSON 파일이 아닌 테이블에서 데이터를 읽어오도록 하겠습니다. Flask 마이크로서비스를 위한 새로운 Python 파일들을 포함하였지만 정적 JSON 파일을 읽는 대신 DynamoDB 요청을 하도록 하겠습니다.
 
-The request is formed using the AWS Python SDK called **boto3**. This SDK is a powerful yet simple way to interact with AWS services via Python code. It enables you to use service client definitions and functions that have great symmetry with the AWS APIs and CLI commands you've already been executing as part of this workshop.  Translating those commands to working Python code is simple when using **boto3**.  To copy the new files into your CodeCommit repository directory, execute the following command in the terminal:
+*[다시]* 요청은 **boto3**라는 AWS Python SDK를 사용하여 구성됩니다. 이 SDK는 Python 코드를 통해 AWS 서비스와 상호 작용할 수 있는 간단하면서도 강력한 방법입니다. 이로 워크샵의 일부로 이미 실행한 AWS API 및 CLI 명령과 크게 대칭되는 서비스 클리아언트 정의 및 기능을 사용할 수 있습니다. **boto3**를 사용하면 명령을 Python 코드로 변화하는 것이 간단합니다. CodeCommit 리포지토리 디렉토리에 새로운 파일들을 복사하기 위해 다음 명령을 터미널에서 실행하세요:
 
 ```sh
 cp ~/environment/workshop/source/module-3/app/service/* ~/environment/MythicalMysfits-BackendRepository/service/
 ```
 
-#### Push the Updated Code into the CI/CD Pipeline
+#### 업데이트 된 코드를 CI/CD 파이프라인으로 푸시
 
-Now, we need to check in these code changes to CodeCommit using the git command line client.  Run the following commands to check in the new code changes and kick of your CI/CD pipeline:
+이제, git 명령으로 코드 변경 사항을 CodeCommit에 체크인합니다. 다음 명령을 실행하여 CI/CD 파이프라인이 시작되도록 코드 변경 사항을 체크인합니다:
 
 ```sh
 cd ~/environment/MythicalMysfits-BackendRepository
@@ -262,19 +262,19 @@ git commit -m "Add new integration to DynamoDB."
 git push
 ```
 
-Now, in just 5-10 minutes you'll see your code changes make it through your full CI/CD pipeline in CodePipeline and out to your deployed Flask service to AWS Fargate on Amazon ECS.  Feel free to explore the AWS CodePipeline console to see the changes progress through your pipeline.
+이제 5~10분안에 CodePipeline의 CI/CD 파이프라인을 통해 Amazon ECS의 AWS Fargate에 배포된 Flask 서비스에 코드 변경이 적용되는걸 확인할 수 있습니다. AWS CodePipeline 콘솔을 탐색하여 파이프라인을 통한 변경 진행 상황을 확인해보세요.
 
-#### Update The Website Content in S3
+#### S3의 웹사이트 콘텐츠 업데이트
 
-Finally, we need to publish a new website to our S3 bucket so that the new API functionality using query strings to filter responses will be used.  The new index.html file is located at `~/environment/workshop/source/module-3/web/index.html`. Copy this file to the `workshop/web` directory:
+응답을 필터링하기 위해 쿼리 문자열을 사용하는 새로운 API 기능이 적용되도록 웹사이트를 S3 버킷에 게시해야합니다. 새 index.html 파일은 `~/environment/workshop/source/module-3/web/index.html`에 위치해 있습니다. 이 파일을 `workshop/web` 디렉토리에 복사하겠습니다:
 
 ```sh
 cp -r ~/environment/workshop/source/module-3/web/* ~/environment/workshop/web
 ```
 
-Open the `~/environment/workshop/web/index.html` file in your Cloud9 IDE and replace the string indicating “REPLACE_ME” just as you did in Module 2, with the appropriate NLB endpoint. Remember do not inlcude the /mysfits path.
+Cloud9 IDE에서 `~/environment/workshop/web/index.html`파일을 열어 모듈 2에서 했던 것 처럼 “REPLACE_ME”에 NLB 엔드포인트를 입력합니다. /mysfits 경로는 추가하지 않아야 합니다.
 
-After replacing the endpoint to point at your NLB, update your S3 hosted website and deploy the `MythicalMysfits-Website` stack:
+NLB를 가르키도록 엔드포인트를 교체한 후 S3 호스팅 웹사이트를 업데이트하고 `MythicalMysfits-Website` 스택을 배포합니다:
 
 ```sh
 cd ~/environment/workshop/cdk/
@@ -282,11 +282,11 @@ npm run build
 cdk deploy MythicalMysfits-Website
 ```
 
-Re-visit your Mythical Mysfits website to see the new population of Mysfits loading from your DynamoDB table and how the Filter functionality is working!
+Mythical Mysfits 웹사이트를 다시 방문하여 DynamoDB 테이블에서 로드되는 새 Mysfits와 Filter 기능이 어떻게 작동하는 확인할 수 있습니다.
 
-That concludes module 3.
+이것으로 모듈 3을 마치겠습니다.
 
-[Proceed to Module 4](/module-4)
+[모듈 4 진행](/module-4)
 
 
 ## [AWS Developer Center](https://developer.aws)

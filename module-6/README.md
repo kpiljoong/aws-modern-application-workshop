@@ -1,15 +1,15 @@
-# Module 6: Tracing Application Requests
+# 모듈 6: 애플리케이션 요청 추적
 
 ![Architecture](/images/module-6/x-ray-arch-diagram.png)
 
-**Time to complete:** 45 minutes
+**완료에 필요한 시간:** 45분
 
 ---
-**Short of time?:** If you are short of time, refer to the completed reference AWS CDK code in `module-6/cdk`
+**시간이 부족한 경우:** 시간이 부족한 경우, `module-6/cdk`에 있는 완전한 레퍼런스 AWS CDK 코드를 참고하세요
 
 ---
 
-**Services used:**
+**사용된 서비스:**
 * [AWS CloudFormation](https://aws.amazon.com/cloudformation/)
 * [AWS X-Ray](https://aws.amazon.com/xray/)
 * [Amazon DynamoDB](https://aws.amazon.com/dynamodb/)
@@ -19,17 +19,17 @@
 * [AWS Lambda](https://aws.amazon.com/lambda/)
 * [AWS CodeCommit](https://aws.amazon.com/codecommit/)
 
-### Overview
+### 개요
 Next, we will show you how to deeply inspect and analyze request behavior on new functionality for the Mythical Mysfits site, using [**AWS X-Ray**](https://aws.amazon.com/xray/).  The new functionality will enable users to contact the Mythical Mysfits staff, via a **Contact Us** button we'll place on the site.  Much of the steps required to create a new microservice to handle receiving user questions mimics activities you've performed earlier in this workshop.
 
-The resources we'll create includes:
+아래는 우리가 생성할 리소스들입니다:
 * An **API Gateway API**:  A new microservice will be created that has a single REST resource, `/questions`.  This API will receive the text of a user question and the email address for the user who submitted it.
 * A **DynamoDB Table**: A new DynamoDB table where the user questions will be stored and persisted.  This DynamoDB table will be created with a [**DynamoDB Stream**](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Streams.html) enabled.  The stream will provide a real-time event stream for all of the new questions that are stored within the database so that they can be immediately processed.
 * An **AWS SNS Topic**: AWS SNS allows applications to publish messages and to subscribe to message topics.  We will use a new topic as a way to send notifications to a subscribed email address for a email address.
 * Two **AWS Lambda Functions**: One AWS Lambda function will be used as the service backend for the question API requests. The other AWS Lambda function will receive events from the questions DynamoDB table and publish a message for each of them to the above SNS topic.  When definining these resources, you'll use a Property that indicates `Tracing: Active`.  This means that all invocations of the Lambda function will automatically be traced by **AWS X-Ray**.
 * **IAM Roles** required for each of the above resources and actions.
 
-### Create a new CodeCommit Repository
+### 새로운 CodeCommit 리포지토리 생성
 
 To create the necessary resources using the AWS CDK, create a new file in the `workshop/cdk/lib` folder called `xray-stack.ts`.
 
@@ -56,7 +56,7 @@ The AWS CDK npm package for Lambda already includes support for X-Ray tracing. W
 npm install --save-dev @aws-cdk/aws-sns@1.9.0 @aws-cdk/aws-sns-subscriptions@1.9.0 @aws-cdk/aws-lambda-event-sources@1.9.0
 ```
 
-Define the class imports for the code we will be writing:
+작성하게될 코드를 위해 클래스 import를 정의합니다:
 
 ```typescript
 import cdk = require('@aws-cdk/core');
@@ -421,7 +421,7 @@ This is the code that will cause your Lambda function to throw an exception.  Al
 
 Using this functionality within your own applications will help you identify similar latency bottlenecks within your code, or places where exceptions are being thrown.
 
-After you make the required code changes and save the `mysfitsPostQuestion.py` file, run the same two commands as before to deploy your changes.  
+필요한 코드를 변경하고 `mysfitsPostQuestion.py` 파일을 저장한 뒤, 변경 사항을 배포하기 위해 이전에 실행했던 두개의 동일한 명령을 실행합니다:
 
 ```sh
 npm run build
@@ -442,9 +442,9 @@ This will take you to the Trace dashboard where you can explore that specific re
 
 ![Exception](/images/module-6/exception.png)
 
-Congratulations, you've completed module 6!
+축하합니다! 모듈 6를 완료하셨습니다!
 
-### [Proceed to Module 7](/module-7)
+### [모듈 7 진행](/module-7)
 
 
 #### [AWS Developer Center](https://developer.aws)

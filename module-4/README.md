@@ -57,20 +57,20 @@ Next, let's turn our attention to creating a new RESTful API in front of our exi
 
 The VPC Link will be created as part of our Module 4 CDK application.
 
-#### Create the REST API using Swagger
+#### Swagger를 사용한 REST API 생성
 
-Your MythicalMysfits REST API is defined using **Swagger**, a popular open-source framework for describing APIs via JSON.  This Swagger definition of the API is located at `workshop/source/module-4/api/api-swagger.json`.  Open this file and you'll see the REST API and all of its resources, methods, and configuration defined within.
+MythicalMysfits REST API는 JSON을 통해 API를 명시하기 위해 널리 사용되는 오픈 소스 프레임워크인 **Swagger**를 사용하여 정의 됩니다. API의 Swagger 정의는 `workshop/source/module-4/api/api-swagger.json`에 위치하고 있습니다. 이 파일을 열면 REST API와 그 안에 정의된 리소스, 메서드, 설정을 확인할 수 있습니다.
 
-The `securityDefinitions` object within the API definition indicates that we have setup an apiKey authorization mechanism using the Authorization header.  You will notice that AWS has provided custom extensions to Swagger using the prefix `x-amazon-api-gateway-`, these extensions are where API Gateway specific functionality can be added to typical Swagger files to take advantage of API Gateway-specific capabilities.
+API 정의 중 `securityDefinitions` 객체는 Authorization 헤더를 사용하여 apiKey 권한부여 메커니즘을 설정했음을 나타냅니다. AWS는 접두사 `x-amazon-api-gateway-`를 사용하여 Swagger에 사용자 정의 확장을 제공했으며, 이러한 확장은 API Gateway 특정 기능을 일반적인 Swagger 파일에 추가하여 API Gateway의 특정 기능의 이점을 얻을 수 있습니다.
 
-To create the VPCLink and the API Gateway using the AWS CDK, create a new file in the `workshop/cdk/lib` folder called `apigateway-stack.ts`.
+AWS CDK로 VPCLink와 API Gateway를 생성하기 위해 `workshop/cdk/lib` 폴더 안에서 `apigateway-stack.ts` 이라는 파일을 생성합니다.
 
 ```sh
 cd ~/environment/workshop/cdk
 touch lib/apigateway-stack.ts
 ```
 
-Within the file you just created, define the skeleton CDK Stack structure as we have done before, this time naming the class `APIGatewayStack`:
+방금 생성한 파일에서 이전과 같이 스켈레톤 CDK Stack 구조를 정의하고 클래스명을 `APIGatewayStack`으로 지정합니다:
 
 ```typescript
 import cdk = require('@aws-cdk/core');
@@ -84,7 +84,7 @@ export class APIGatewayStack extends cdk.Stack {
 }
 ```
 
-Then, add the APIGatewayStack to our CDK application definition in `bin/cdk.ts`, when done, your `bin/cdk.ts` should look like this;
+그리고 `bin/cdk.ts` 파일의 CDK 애플리케이션 정의에 APIGatewayStack을 추가합니다. 완료 후 `bin/cdk.ts`는 다음과 같아야합니다;
 
 ```typescript
 #!/usr/bin/env node
@@ -126,7 +126,7 @@ Install the AWS CDK npm package for API Gateway by executing the following comma
 npm install --save-dev @aws-cdk/aws-apigateway@1.9.0
 ```
 
-Back in `APIGatewayStack.ts`, define the class imports for the code we will be writing:
+`APIGatewayStack.ts`에서, 작성할 코드를 위해 class import를 정의합니다:
 
 ```typescript
 import cdk = require('@aws-cdk/core');
@@ -137,7 +137,7 @@ import fs = require('fs');
 import path = require('path');
 ```
 
-Next, define the Stack Properties class which details the dependencies our API Gateway implementation has upon other stacks.
+다음으로 API Gateway 구현체의 다른 스택과의 종속성을 자세히 기술하기위해 Stack Properties 클래스를 정의합니다.
 
 ```typescript
 interface APIGatewayStackProps extends cdk.StackProps {
@@ -145,13 +145,13 @@ interface APIGatewayStackProps extends cdk.StackProps {
 }
 ```
 
-Now change the constructor of your APIGatewayStack to require your properties object.
+APIGatewayStack의 생성자가 속성 객체를 인자로 받게끔 수정합니다:
 
 ```typescript
   constructor(scope: cdk.Construct, id: string, props: APIGatewayStackProps) {
 ```
 
-Now, within the constructor of our `APIGatewayStack` class, let's import the Network Load Balancer from the ECS Cluster created in Module 2:
+`APIGatewayStack` 클래스의 생성자에서 모듈 2에서 생성항 ECS Cluster에서 Network Load Balancer를 import합니다:
 
 ```typescript
 const nlb = elbv2.NetworkLoadBalancer.fromNetworkLoadBalancerAttributes(this, 'NLB', {

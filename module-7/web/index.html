@@ -121,6 +121,8 @@
       </div>
     </div>
   </div>
+
+
   <div class="modal fade" id="questionModal" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
@@ -148,6 +150,9 @@
       </div>
     </div>
   </div>
+
+
+
     <div class="container" ng-controller="mysfitsFilterController">
       <div id="filterMenu">
         <ul class="nav nav-pills">
@@ -169,6 +174,7 @@
         </ul>
       </div>
     </div>
+
     <br>
     <div class="container">
       <div id="mysfitsGrid" class="row" ng-controller="mysfitsListController">
@@ -197,6 +203,9 @@
         </div>
       </div>
     </div>
+
+
+
     <div class="modal fade bd-example-modal-lg" id="profileModal" tabindex="-1" aria-hidden="true" ng-controller="mysfitProfileController">
       <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -232,6 +241,8 @@
         </div>
       </div>
     </div>
+
+
     <br>
     <br>
     <div style="text-align: center;">
@@ -768,9 +779,6 @@
       gridScope = $scope;
 
       getAllMysfits(applyGridScope);
-
-
-
       $scope.likeClicked = function(mysfitId) {
         console.log("clicked: " + mysfitId);
         likeMysfit(mysfitId, updateLikeIcons);

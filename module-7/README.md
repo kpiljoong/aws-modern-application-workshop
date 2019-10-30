@@ -1,15 +1,15 @@
-# Module 7: Using Machine Learning to Recommend a Mysfit
+# 모듈 7: 머신 러닝을 통한 Mysfit 추천
 
 ![Architecture](/images/module-7/sagemaker-architecture.png)
 
-**Time to complete:** 45 minutes
+**완료에 필요한 시간:** 45분
 
 ---
-**Short of time?:** If you are short of time, refer to the completed reference AWS CDK code in `module-7/cdk`
+**시간이 부족한 경우:** `module-7/cdk`에 있는 완전한 레퍼런스 AWS CDK 코드를 참고하세요
 
 ---
 
-**Services used:**
+**사용된 서비스:**
 * [Amazon SageMaker](https://aws.amazon.com/sagemaker/)
 * [AWS CloudFormation](https://aws.amazon.com/cloudformation/)
 * [Amazon S3](https://aws.amazon.com/s3/)
@@ -17,50 +17,52 @@
 * [AWS Lambda](https://aws.amazon.com/lambda/)
 * [AWS CodeCommit](https://aws.amazon.com/codecommit/)
 
-## Overview
-One of the fastest growing areas of technology is machine learning.  As the cost to leverage high performance computing environments has continued to decrease, the number of use cases where Machine Learning algorithms can be economically applied has grown astronomically.  We can even use machine learning to help the visitors of MythicalMysfits.com discover which Mysfit is perfect for them.  And that's just what you will do in this module.  
+## 개요
+가장 빠르게 성장하고 있는 기술 영역 중 하나는 머신 러닝입니다. 고성능 컴퓨팅 환경을 활용하는 비용이 계속 감소함에 따라 머신 러닝 알고리즘을 경제적으로 적용할 수 있는 사용 사례가 천문학적으로 증가했습니다. 이 머신 러닝 기술을 사용하여 MythicalMysfits.com 방문자가 자신에게 가장 적합한 mysfit을 찾을 수 있도록 도울 수 있습니다. 이번 모듈에서는 이 작업을 수행해보도록 하겠습니다.
 
-With Amazon SageMaker, a fully managed machine learning service, you are going to introduce a new machine learning based recommendation engine on the Mythical Mysfits site.  This will enable site visitors to provide us with details about themselves, and we will use that information to invoke a machine learning model and predict which Mysfit would best suit them. Amazon SageMaker will give you the tools needed to:
-* Prepare data for model training (using sample data we've created and made available in S3)
-* Train a machine learning model using one of the many already-implemented machine learning algorithms that SageMaker provides, and evaluate the model's accuracy.
-* Store and Deploy the created model so that it can be invoked at-scale to provide inferences to your application (the Mythical Mysfits website).
+완전 관리형 머신 러닝 서비스인 Amazon SageMaker를 사용하여 Mythical Mysfits 사이트에 새로운 머신 러닝 기반 추천 엔진을 도입하겠습니다. 사이트 방문자는 자신에 대한 세부 정보를 제공하고, 해당 정보를 사용하여 머신 러닝 학습 모델을 호출하여 가장 적합한 Mysift를 예측합니다. Amazon SageMaker는 다음과 같은 도구들을 제공합니다:
+* 모델 교육을 위한 데이터 준비 (S3에 저장된 샘플 데이터를 사용).
+* SageMaker가 제공하는 많은 이미 구현된 머신 러닝 알고리즘을 중 하나를 사용하여 머신 러닝 모델을 학습하고 모델의 정확성을 평가.
+* 애플리케이션(Mythical Mysfits 사이트)에서 확장성 있는 추론 기능을 제공하기 위해 생성된 모델을 저장 및 배포.
 
-## Building a Machine Learning Model
+## 머신 러닝 모델 구축
 
-#### The Importance of Data
-A prerequisite to beginning any machine learning journey is gathering data.  The data used will define your algorithm's understanding of the use case its being asked to play a role in, and its ability to make accurate predictions/inferences. If you introduce machine learning into your application using insufficient, irrelevant, or inaccurate data, you risk bringing more harm than benefit to your application.
+#### 데이터의 중요성
+머신 러닝 여정을 시작하기 앞서 데이터 수집을 해야 합니다. 이 데이터는 사용 사례에 대한 알고리즘의 이해와 정확한 예측/추론 능력을 정의합니다. 불충분하거나, 관련이 없거나, 부정확한 데이터를 사용한 머신 러닝을 애플리케이션에 추가하는 것은 이익보다 더 큰 불이익을 불러오는 위험성이 있습니다.
 
-However, for our Mysfits site, we obviously do not have vast quantities of accurate and historical adoption data to make mysfit recommendations.  So instead, we generated loads of data randomly. This means the model that you'll build will be making predictions based on randomized data, and its "accuracy" will suffer because the data was randomly generated. This data set will still allow you to become familiar with *how* to use SageMaker in a real application... but we will be glossing over all the critical steps required in the real world to identify, gather, and curate an appropriate data set to be used with machine learning successfully.
+[다시] 하지만 Mysfits 사이트에서는, mysfit 권장을 하기위한 방대한 양의 정확하고 어돕션 기록 데이터를 가지고 있지않습니다. 그래서 대신에 무작위로 많은 양의 데이터를 생성해서 사용하고자 합니다. 즉, 우리가 구축할 모델은 무작위 데이터를 기반으로 예측을 하게되어 정확도에 좋지 않은 영향을 줍니다. 이 데이터 세트를 통해 실제 애플리케이션에서 SageMaker를 *어떻게* 사용하는지에 익숙해질 수는 있지만, 실제 데이터 세트를 식별, 수집 및 선별하기 위해 실제 필요한 모든 단계를 고려하고 있어 머신 러닝을 성공적으로 사용될 수 있도록 합니다.
 
-### Creating a Hosted Notebook instance with SageMaker
-Data Scientists and developers that want to curate data, define and run algorithms, build models, and more, all while thoroughly documenting their work can do so in a single place called a **notebook**.  Through AWS SageMaker, you can create an EC2 instance that is preconfigured and optimized for Machine Learning and already has the [Jupyter Notebooks](http://jupyter.org/) application running on it, this is called a **notebook instance**.  In order to create a notebook instance, we must first create some prerequisites that the notebook requires, namely an IAM Role that will give the notebook instance the permissions it needs to perform everything required.
+### SageMaker로 호스팅 노트북 인스턴스 생성
+데이터를 큐레이션하고 알고리즘을 정의 및 실행하고 모델을 구축하는 등의 작업을 철저히 문서화하려는 데이터 과학자와 개발자는 **노트북** 이라는 단일 장소를 활용합니다. AWS SageMaker를 통해 머신 러닝에 사전 구성 및 최적화되어 있고 이미 [Jupyter Notebooks](http://jupyter.org/) 애플리케이션이 실행중인 EC2 인스턴스를 **노트북 인스턴스**라고 합니다. In order to create a notebook instance, we must first create some prerequisites that the notebook requires, namely an IAM Role that will give the notebook instance the permissions it needs to perform everything required.
 
-To create the necessary resources using the AWS CDK, create a new file in the `workshop/cdk/lib` folder called `sagemaker-stack.ts`.
+AWS CDK를 사용하여 필요한 리소스들을 생성하기 위해 `workshop/cdk/lib` 폴더에 `sagemaker-stack.ts` 이라는 파일을 생성합니다:
 
 ```sh
 cd ~/environment/workshop/cdk
 touch lib/sagemaker-stack.ts
 ```
 
-Within the file you just created, define the skeleton CDK Stack structure as we have done before, this time naming the class `SageMakerStack`:
+방금 생성한 파일에서 이전과 같이 스켈레톤 CDK Stack 구조를 정의하고 클래스명을 `SageMakerStack`으로 지정합니다:
 
 ```typescript
 import cdk = require('@aws-cdk/core');
+
 export class SageMakerStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id:string) {
     super(scope, id);
+
     // The code that defines your stack goes here
   }
 }
 ```
 
-Next, we need to install the AWS CDK npm packages for SageMaker:
+다음으로 SageMaker AWS CDK NPM 패키지를 설치합니다:
 
 ```sh
-npm install --save-dev @aws-cdk/aws-sagemaker@1.9.0
+npm install --save-dev @aws-cdk/aws-sagemaker@1.14.0
 ```
 
-Define the class imports for the code we will be writing:
+코드에서 사용할 모듈을 import합니다:
 
 ```typescript
 import cdk = require('@aws-cdk/core');
@@ -72,7 +74,7 @@ import apigw = require("@aws-cdk/aws-apigateway");
 import lambda = require("@aws-cdk/aws-lambda");
 ```
 
-Within the `SageMakerStack` constructor, add the IAM Role and Notebook instance, as well as the CodeCommit repository we'll use later:
+`SageMakerStack` 컨스트럭트에서, IAM 역할과 노트북 인스턴스를 추가하고, 나중에 사용할 CodeCommit 리포지토리도 추가합니다:
 
 ```typescript
 const mysfitsNotebookRole = new iam.Role(this, "MysfitsNotbookRole", {
@@ -135,22 +137,18 @@ new cdk.CfnOutput(this, "recommendationsRepositoryCloneUrlSsh", {
 });
 ```
 
-Then, add the `SageMakerStack` to our CDK application definition in `bin/cdk.ts`, when done, your `bin/cdk.ts` file should look like this:
+그리고 `bin/cdk.ts` 파일의 CDK 애플리케이션 정의에 `SageMakerStack`를 추가합니다. 완료 후 `bin/cdk.ts` 파일은 다음과 같을 것 입니다:
 
 ```typescript
 #!/usr/bin/env node
-
-import cdk = require("@aws-cdk/core");
 import 'source-map-support/register';
+import cdk = require("@aws-cdk/core");
 import { WebApplicationStack } from "../lib/web-application-stack";
 import { NetworkStack } from "../lib/network-stack";
 import { EcrStack } from "../lib/ecr-stack";
 import { EcsStack } from "../lib/ecs-stack";
 import { CiCdStack } from "../lib/cicd-stack";
 import { DynamoDbStack } from '../lib/dynamodb-stack';
-import { APIGatewayStack } from "../lib/apigateway-stack";
-import { KinesisFirehoseStack } from "../lib/kinesis-firehose-stack";
-import { XRayStack } from "../lib/xray-stack";
 import { SageMakerStack } from "../lib/sagemaker-stack";
 
 const app = new cdk.App();
@@ -168,103 +166,94 @@ new CiCdStack(app, "MythicalMysfits-CICD", {
 const dynamoDbStack = new DynamoDbStack(app, "MythicalMysfits-DynamoDB", {
     fargateService: ecsStack.ecsService.service
 });
-new APIGatewayStack(app, "MythicalMysfits-APIGateway", {
-    vpc: networkStack.vpc,
-    fargateService: ecsStack.ecsService.service
-});
-new KinesisFirehoseStack(app, "MythicalMysfits-KinesisFirehose", {
-    table: dynamoDbStack.table
-});
-new XRayStack(app, "MythicalMysfits-XRay");
 new SageMakerStack(app, "MythicalMysfits-SageMaker");
 ```
 
-We are not yet finished writing the `SageMakerStack` implementation but let's deploy what we have written so far:
+`SageMakerStack` 구현을 아직 완료 하지 않았지만, 작성한 것들까지만 배포해보도록 하겠습니다:
 
 ```sh
 cdk deploy MythicalMysfits-SageMaker
 ```
 
-> **Note:** It will take about 10 minutes for your notebook instance to move from `Pending` state to `InService`. You may proceed on to the next steps while the notebook is being provisioned.
+> **참고:** 노트북 인스턴스가 `Pending` 상태에서 `InService`까지 바뀌는데 약 10분 정도 걸릴 수 있습니다. 이 작업이 완료되는 동안 다음 과정으로 진행해도 괜찮습니다.
 
-In the output of that command, copy the value for `"Repository Clone Url HTTP"`.  It should be of the form: `https://git-codecommit.REPLACE_ME_REGION.amazonaws.com/v1/repos/MythicalMysfits-RecommendationsLambdaRepository`. Note down this value, we'll use in the next step.
+이전 명령의 출력에서 `"Repository Clone Url HTTP"` 값을 복사합니다. 해당 값은 다음 형태여야 합니다: `https://git-codecommit.REPLACE_ME_REGION.amazonaws.com/v1/repos/MythicalMysfits-RecommendationsLambdaRepository`. 이 값은 이후 과정에서 사용할 것이니 적어둡니다.
 
-Finally, there is a file in your cloned repository that will be used in the next steps that you should download.  In the File Explorer in Cloud9, find `~environment/workshop/source/module-7/sagemaker/mysfit_recommendations_knn.ipynb`, right-click it, and select Download.  Save this file to your local workstation and remember where it has been saved.
+복제한 리포지토리 안에 이후 과정에서 사용할 파일이 있습니다. Cloud9의 파일 탐색기(File Explorer)에서 `~environment/workshop/source/module-7/sagemaker/mysfit_recommendations_knn.ipynb` 파일을 찾고, 마우스 오른쪽 버튼 클릭을 한 후 다운로드(Download)를 누릅니다. 파일을 로컬 디렉토리에 저장하신 후 이후 사용하기 위해 위치를 기억해둡니다.
 
-### Using Amazon SageMaker
+### Amazon SageMaker 사용
 
-Next, open up a new browser tab and visit the SageMaker console (be sure the region selected at the top-right of your AWS Management Console matches the region you're building within):
+다음으로, 브라우저에서 새 탭을 열고 SageMaker 콘솔로 이동합니다 (워크샵이 진행 중인 리전과 동일한 리전인지 확인 하시기 바랍니다):
 [Amazon SageMaker Console](https://console.aws.amazon.com/sagemaker/home)
 
-Then, click on **Notebook Instances.**
+**Notebook Instances**을 클릭합니다.
 
-Click the radio button next to the **MythicalMysfits-SageMaker-Notebook** instance that you just created via the CLI, and click **Open Jupyter.**  This will redirect you to the Jupyter Notebook application running on your notebook instance.  
+AWS CDK를 통해 생성된 **MythicalMysfits-SageMaker-Notebook** 인스턴스 옆의 라디오 버튼을 클릭하고 **Open Jupyter**를 클릭합니다. 이를 통해 노트북 인스턴스에서 동작중인 Jupyter Notebook 애플리케이션으로 이동할 수 있습니다.
 
 ![SageMaker Notebook Instances](/images/module-7/sagemaker-notebook-instances.png)
 
-> **Note**: that for this workshop, we have created the notebook instance to allow you access it directly via the Internet, running in a service-managed VPC.  For more details about accessing a notebook instance through a VPC Interface Endpoint, should you desire to for a future use case, visit [this documentation page.](https://docs.aws.amazon.com/sagemaker/latest/dg/notebook-interface-endpoint.html).
+> **참고**: 워크샵'만'을 위해, 우리가 생성한 노트북 인스턴스는 서비스가 관리하는 VPC에서 동작하며 인터넷을 통해 바로 접근이 가능합니다. 이후 실제 사용시에 고려되어야 하는 VPC 인터페이스 엔드포인트를 통한 노트북 접근에 대해 더 자세히 알아보기 위해서는 [이 문서](https://docs.aws.amazon.com/sagemaker/latest/dg/notebook-interface-endpoint.html)를 참고하시기 바랍니다.
 
-With Jupyter open, you will be presented with the following home page for your notebook instance:
+Jupyter가 열리면 다음과 같은 노트북 인스턴스의 홈페이지를 볼 수 있습니다:
 ![Jupyter Home](/images/module-7/jupyter-home.png)
 
-Click the **Upload** button, and then find the file you downloaded in the previous section `mysfit_recommendations_knn.ipynb`, then click **Upload** on the file line. This will create a new Notebook document on the notebook instance within Jupyter that uses the notebook file you've just uploaded.
+**Upload** 버튼을 클릭하고, 이전 섹션에서 다운로드 받은 파일 `mysfit_recommendations_knn.ipynb`을 찾습니다. 그리고 파일이 표시되는 라인의 오른쪽에 있는 **Upload**를 클릭 합니다. 이 작업은 방금 업로드한 노트북 파일을 사용할 Jupyter안의 노트북 인스턴스에 새로운 노트북 문서를 생성할 것입니다.
 
-We have pre-written the notebook required that will guide you through the code required to build a model.
+모델을 작성하는데 필요한 코드를 가이드하는데 필요한 노트북을 미리 작성해두었습니다.
 
-#### Using the Hosted Notebook to Build, Train, and Deploy a Model
-Click on the filename within the Jupyter application, for the file you've just uploaded, and you a new browser tab will be opened for you to work within the notebook document.
+#### 호스팅된 노트북을 사용하여 모델 구축, 교육, 배포
+Jupyter 애플리케이션에서 방금 업로드한 파일이름을 클릭하면, 새로운 브라우저 탭이 열리며 노트북 문서가 보일 것 입니다.
 
-# STOP!
-Follow the instructions within the notebook document in order to deploy a SageMaker endpoint for predicting the best Mythical Mysfit for a user based on their quesitonnaire responses.
+# 잠시!
+노트북 문서의 지시사항을 따라 질문에 대한 응답을 기반으로 사용자에게 가장 적합한 Mythical Mysfit를 예측하기위해 SageMaker 엔드포인트를 배포합니다.
 
-Once you have completed the steps within the notebook, return here to proceed with the workshop.
+노트북 내의 과정을 모두 완료한 뒤, 다음을 진행합니다.
 
-## Creating a Serverless REST API for Model Predictions
-Now that you have a deployed SageMaker endpoint, let's wrap our own Mythical Mysfits serverless REST API around the endpoint. This allows us to define the API exactly to our specifications, and for our frontend application code to continue integrating with APIs that we ourselves define rather than the native AWS service API.  We'll build the microservice to be serverless using API Gateway and AWS Lambda.
+## 예측 모델을 위한 서버리스 REST API 생성
+이제 SageMaker 엔드포인트를 배포했으니, 이 엔드포인트에 Mythical Mysfits 서버리스 REST API를 통합하겠습니다. 이를 통해 API를 우리가 필요한 사양에 맞게끔 정의하고 프론트엔드 애플리케이션 코드가 지속적으로 네이티브 AWS 서비스 API가 아닌 우리가 정의한 정의와 통합되도록 합니다. API Gateway 및 AWS Lambda를 사용하여 마이크로서비스를 서버리스가 되도록 합니다.
 
-We have already created another new CodeCommit repository for where your recommendations service code could be committed. To clone the new repository to your Cloud9 environment use the `cloneUrlHttp` attribute you noted earlier, e.g. `https://git-codecommit.REPLACE_ME_REGION.amazonaws.com/v1/repos/MythicalMysfits-RecommendationsLambdaRepository`.
+ 추천 서비스 코드가 커밋될 수 있도록 새로운 CodeCommit 리포지토리를 생성했었습니다. 이 리포지토리를 Cloud9 환경에 클론하기 위해 이전에 기록해둔 `cloneUrlHttp` 속성을 사용합니다 (예, `https://git-codecommit.REPLACE_ME_REGION.amazonaws.com/v1/repos/MythicalMysfits-RecommendationsLambdaRepository`).
 
-Next, let's clone that new and empty repository:
+다음으로 리포지토리를 클론합니다:
 
 ```sh
 cd ~/environment/
 git clone REPLACE_ME_WITH_ABOVE_CLONE_URL lambda-recommendations
 ```
 
-### Copy the Questions Service Code Base
+### Questions 서비스 코드 기반 복사
 
-Now, let's move our working directory into this new repository:
+이제 클론한 리포지토리로 이동합니다:
 ```
 cd ~/environment/lambda-recommendations/
 ```
 
-Then, copy the module-7 application components into this new repository directory:
+그리고 module-7 애플리케이션 구성요소들을 새 리포지토리 디렉토리에 복사합니다:
 ```
 cp -r ~/environment/workshop/source/module-7/app/* .
 ```
 
-There is one code change that you must make to the service Python code before we
-can deploy the API.  Open `~/environment/lambda-recommendations/service/recommendation.py` in Cloud9.  You will see a single entry that needs replacing: `REPLACE_ME_SAGEMAKER_ENDPOINT`
+API를 배포하기 전 서비스 Python 코드에 변경해야하는 코드가 있습니다. Cloud9에서 `~/environment/lambda-recommendations/service/recommendation.py` 파일을 열면 교체해야하는 한 줄이 보일 것 입니다: `REPLACE_ME_SAGEMAKER_ENDPOINT`
 
-To retrieve the value required, run the following CLI command to describe your SageMaker endpoints:
+필요한 값을 얻기 위해 다음 CLI 명령을 실행하여 SageMaker 엔드포인트를 읽어옵니다:
 
 ```
 aws sagemaker list-endpoints > ~/environment/sagemaker-endpoints.json
 ```
 
-Open `sagemaker-endpoints.json` and copy the EndpointName value that is prefixed with `knn-ml-m4-xlarge-` (this is what we prefixed our endpoint name with inside the Jupyter notebook).
+`sagemaker-endpoints.json`파일을 열고 `knn-ml-m4-xlarge-` 접두사가 붙은 EndpointName 값을 복사합니다 (접두사는 Jupyter 노트북 내부에서 엔드포인트 이름의 접두사로 지정한 것 입니다).
 
-Paste the EndpointValue name in the `recommendation.py` file and save the file.
+`recommendation.py` 파일에 EndpointValue 붙여넣고 저장합니다.
 
-### Creating the Questions Service Stack
+### Questions 서비스 스택 생성
 
-Change back into the `cdk` folder:
+다시 `cdk` 폴더로 이동합니다:
 
 ```sh
 cd ~/environment/workshop/cdk
 ```
 
-Back in the `SageMakerStack` file, we will now define the Recommendations microservice infrastructure:
+`SageMakerStack` 파일에서 Recommendations 마이크로서비스 인프라를 정의하겠습니다:
 
 ```typescript
 const recommandationsLambdaFunctionPolicyStm =  new iam.PolicyStatement();
@@ -361,68 +350,68 @@ recommendationsMethod.addMethod('OPTIONS', new apigw.MockIntegration({
 });
 ```
 
-Finally, deploy the CDK Application:
+이제 CDK 애플리케이션을 배포합니다:
 
 ```sh
 cdk deploy MythicalMysfits-SageMaker
 ```
 
-When this command completes, you have deployed the REST API microservice wrapper for the SageMaker endpoint you created through the Jupyter notebook. Note down the Recommendations API Gateway endpoint, as we will need it next.
+배포 명령이 완료되면, Jupyter 노트북을 통해 생성한 SageMaker 엔드포인트의 REST API 마이크로서비스가 래퍼 배포된 것입니다. 이후에 필요한 Recommendations API Gateway 엔드포인트를 적어둡니다.
 
-Let's test the new service with the following CLI command that uses curl (a Linux tool for making web requests). This will show you the recommendations in action for a new data point matching the CSV lines we used for training data. You'll use the API Gateway endpoint value you noted down above to invoke your own REST API, be sure to append /recommendations after the endpoint, as shown below:
+curl을 사용하는 다음 CLI 명령으로 새로 배포한 서비스를 테스트해보겠습니다. 훈련 데이터에서 사용한 CSV 라인과 일치하는 새로운 데이터 포인트에 대한 추천이 표시됩니다. 바로 위에서 기록해둔 API Gateway 엔드포인트 값을 통해 REST API를 호출합니다. 아래처럼 엔드포인트 뒤에 /recommendations 을 붙여야합니다:
 
 ```
-curl -d '{"entry": [1,2,3,4,5]}' REPLACE_ME_RECOMMENDATION_API_ENDPOINT/recommendations -X POST
+curl -X POST -data '{"entry": [1,2,3,4,5]}' REPLACE_ME_RECOMMENDATION_API_ENDPOINT/recommendations
 ```
 
-You should get a response like the following:
+다음과 같은 응답을 요청의 결과로 받아야 합니다:
 ```
 {"recommendedMysfit": "c0684344-1eb7-40e7-b334-06d25ac9268c"}
 ```
 
-You're now ready to integrate this new backend functionality into the Mythical Mysfits website.
+이제 이 추천 기능을 Mythical Mysfits 웹사이트에 통합할 준비가 되었습니다.
 
-### Update the Website Content and Push the New Site to S3
+### 웹사이트 콘텐츠 업데이트 및 새로운 사이트 S3에 푸시
 
-A new `index.html` file has been included in Module 7 that contain the code required to present users with the Mysfit Recommendation questionnaire and present them with their recommended Mysfit.
+사용자에게 Mysfit 추천을 위한 질문들과 추천 결과를 보여줄 새로운 `index.html` 파일이 모듈 7에 포함되어 있습니다.
 
 ![Recommendation Button SS](/images/module-7/recommendation-button-ss.png)
 
-Copy the new version of the website to the `workshop/web` directory:
+`workshop/web` 디렉토리에 새 버전의 웹사이트를 복사합니다:
 
 ```sh
 cp -r ~/environment/workshop/source/module-7/web/* ~/environment/workshop/web
 ```
 
-This file contains the same placeholders as module-6 that need to be updated, as well as an additional placeholder for the new recommendations service endpoint you just created. The `recommendationsApiEndpoint` value is the API Gateway endpoint you noted down earlier.
+파일은 플레이홀더들을 포함하고 있습니다. `recommendationsApiEndpoint` 값이 위에서 기록해둔 API Gateway 엔드포인트입니다.
 
-Now, let's update your S3 hosted website and deploy the `MythicalMysfits-Website` stack:
+S3 호스팅 웹사이트를 업데이트하고 `MythicalMysfits-Website` 스택을 배포합니다:
 
 ```sh
 npm run build
 cdk deploy MythicalMysfits-Website
 ```
 
-Now you should be able to see a new **Recommend a Mysfit** button on the website, which will present you with the questionnaire, capture your selections, and submit those selections to our recommendations microservice.
+이제 웹사이트에서 새로운 **Recommend a Mysfit** 버튼을 볼 수 있을 것 입니다. 이 버튼은 질문을 보여주고, 선택된 응답을 가지고 추천 마이크로서비스에 보낼 것입니다.
 
-Congratulations, you've completed module 7!
+축하합니다 모듈 7을 완료했습니다!
 
 
-### Workshop Clean-Up
+### 워크샵 정리
 
-#### Module 7 Clean-Up:
-We have added code to the SageMaker notebook for deleting the deployed endpoint. If you return to the notebook and proceed to the next code cells, you can execute them to bring down the endpoint to stop paying for it.
+#### 모듈 7 정리:
+배포된 엔드포인트를 삭제하기 위해 SageMaker 노트북에 코드를 추가했습니다. 노트북으로 돌아가 이전에 완료한 다음 코드 셀을 실행하여 엔트포인트를 중단하여 추가 비용을 방지할 수 있습니다.
 
-#### General Workshop Clean-Up
-Be sure to delete all of the resources created during the workshop in order to ensure that billing for the resources does not continue for longer than you intend. We recommend that you utilize the AWS Console to explore the resources you've created and delete them when you're ready.
+#### 일반적인 워크샵 정리
+의도치 않은 과금을 방지하기 위해 워크샵 중 생성된 리소스 모두를 삭제해야합니다. AWS 콘솔을 통해 생성한 리소스를 확인하고 제거할 준비가되면 리소스를 삭제하시기 바랍니다.
 
-For the two cases where you provisioned resources using AWS CloudFormation, you can remove those resources by simply running the following CLI command for each stack:
+AWS CloudFormation을 사용하여 리소스를 프로비저닝한 경우 각 스택에 대해 다음 CLI 명령을 실행하여 해당 리소스를 제거할 수 있습니다.
 
 ```
 cdk destroy
 ```
 
-To remove all of the created resources, you can visit the following AWS Consoles, which contain resources you've created during the Mythical Mysfits workshop:
+Mythical Mysfits 워크샵 진행 중 생성된 생성된 리소스 전부를 지우기 위해 아래의 AWS 콘솔에 접속해보시기 바랍니다:
 * [Amazon SageMaker](https://console.aws.amazon.com/sagemaker/home)
 * [AWS Kinesis](https://console.aws.amazon.com/kinesis/home)
 * [AWS Lambda](https://console.aws.amazon.com/lambda/home)
@@ -439,15 +428,15 @@ To remove all of the created resources, you can visit the following AWS Consoles
 * [AWS IAM](https://console.aws.amazon.com/iam/home)
 * [AWS CloudFormation](https://console.aws.amazon.com/cloudformation/home)
 
-# Conclusion
+# 정리
 
-This experience was meant to give you a taste of what it's like to be a developer designing and building modern application architectures on top of AWS.  Developers on AWS are able to programmatically provision resources using the AWS CLI, reuse infrastructure definitions via AWS CloudFormation, automatically build and deploy code changes using the AWS developer tool suite of Code services, and take advantage of multiple different compute and application service capabilities that do not require you to provision or manage any servers at all!
+워크샵을 통해 전달하고 싶었던 것은 AWS를 기반으로 현대의 애플리케이션 아키텍처를 설계하고 구축하는 개발자가 어떤 것인지에 대한 맛보기 경험이었습니다. AWS에서의 개발자는 AWS CLI를 사용하여 프로그래밍 방식으로 리소스를 프로비저닝하고, AWS CloudFormationn을 통해 인프라 정의를 재사용하고, AWS 개발자 도구들을 사용하여 자동으로 코드 변경 사항을 빌드하고 배포하며, 어떤 서버도 프로비저닝하거나 관리할 필요가 없는 다양한 컴퓨팅 및 애플리케이션 서비스 기능을 활용할 수 있습니다.
 
-As a great next step, to learn more about the inner workings of the Mythical Mysfits website that you've created, dive into the provided CloudFormation templates and the resources declared within them.
+다음 단계로, Mythical Mysfits 웹사이트의 내부가 어떻게 동작하는지에 대해 더 알고 싶으시다면 제공된 CloudFormation 템플릿과 그 안에 선언된 리소스를 살펴보시기 바랍니다.
 
-We hope you have enjoyed the AWS Modern Application Workshop!  If you find any issues or have feedback/questions, don't hesitate to open an issue.
+AWS Modern Application Workshop을 즐겁게 완료하셨기를 바랍니다. 문제가 있거나 피드백/질문이 있으면 언제든 연락 주시기 바랍니다.
 
-Thank you!
+감사합니다.
 
 
 ## [AWS Developer Center](https://developer.aws)
