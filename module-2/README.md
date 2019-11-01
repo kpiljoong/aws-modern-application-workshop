@@ -25,7 +25,7 @@
 
 ### 개요
 
-모듈 2에서는 [AWS CDK](https://aws.amazon.com/cdk/)를 사용하여 [Amazon Elastic Container Service](https://aws.amazon.com/ecs/)의 [AWS Fargate](https://aws.amazon.com/fargate/)로 호스팅 되는 마이크로서비스를 생성하여 Mythical Mysfits 웹사이트의 애플리케이션 백엔드를 구성합니다. AWS Fargate는 Amazon ECS의 배포 옵션으로서 클러스터 또는 서버 관리 없이 컨테이너를 배포할 수 있습니다. Python을 사용하여 Network Load Balancer 뒤에서 동작하는 Flask 앱의 도커 컨테이너를 생성하여 Mythical Mysfits 백엔드를 구성합니다. 이를 통해 프론트엔드 웹사이트와 통합되는 마이크로서비스 백엔드를 형성할 것 입니다.
+모듈 2에서는 [AWS CDK](https://aws.amazon.com/cdk/)를 사용하여 [Amazon Elastic Container Service](https://aws.amazon.com/ecs/)의 [AWS Fargate](https://aws.amazon.com/fargate/)로 호스팅 되는 마이크로서비스를 생성하여 신비한 미스핏츠(Mythical Mysfits) 웹사이트의 애플리케이션 백엔드를 구성합니다. AWS Fargate는 Amazon ECS의 배포 옵션으로서 클러스터 또는 서버 관리 없이 컨테이너를 배포할 수 있습니다. Python을 사용하여 Network Load Balancer 뒤에서 동작하는 Flask 앱의 도커 컨테이너를 생성하여 신비한 미스핏츠(Mythical Mysfits) 백엔드를 구성합니다. 이를 통해 프론트엔드 웹사이트와 통합되는 마이크로서비스 백엔드를 형성할 것 입니다.
 
 ### AWS CDK를 사용하여 핵심 인프라 생성
 
@@ -79,7 +79,7 @@ const networkStack = new NetworkStack(app, "MythicalMysfits-Network");
 먼저, Amazon EC2와 AWS IAM 용 CDK NPM 패키지를 설치합니다:
 
 ```sh
-npm install --save-dev @aws-cdk/aws-ec2@1.14.0 @aws-cdk/aws-iam@1.14.0
+npm install --save-dev @aws-cdk/aws-ec2@1.15.0 @aws-cdk/aws-iam@1.15.0
 ```
 
 `network-stack.ts` 파일에서 다음 VPC 컨스트럭츠를 정의합니다:
@@ -144,7 +144,7 @@ cdk deploy MythicalMysfits-Network
 
 #### 도커 이미지 생성
 
-다음으로 Mythical Mysfits 백엔드를 Flask로 작성된 마이크로서비스 API로 실행하는데 필요한 모든 코드 및 구성을 포함하는 도커 컨테이너 이미지를 만듭니다. Cloud9 내에서 도커 컨테이너 이미지를 빌드한 다음 Amazon Elastic Container Registry로 푸시합니다. 이를 통해 Fargate로 서비스를 만들 때 컨테이너 이미지를 가져올 수 있습니다.
+다음으로 신비한 미스핏츠(Mythical Mysfits) 백엔드를 Flask로 작성된 마이크로서비스 API로 실행하는데 필요한 모든 코드 및 구성을 포함하는 도커 컨테이너 이미지를 만듭니다. Cloud9 내에서 도커 컨테이너 이미지를 빌드한 다음 Amazon Elastic Container Registry로 푸시합니다. 이를 통해 Fargate로 서비스를 만들 때 컨테이너 이미지를 가져올 수 있습니다.
 
 서비스 백엔드를 실행하는데 필요한 모든 코드는 Cloud9 IDE에 복제한 리포지토리의 디렉토리 `workshop/source/module-2/app/`에 저장되어있습니다. Flask를 사용하여 서비스 API를 생성하는 Python 코드를 검토하려면 `workshop/source/module-2/app/service/mythicalMysfitsService.py` 파일을 확인하세요.
 
@@ -237,7 +237,7 @@ const ecrStack = new EcrStack(app, "MythicalMysfits-ECR");
 다음으로 Amazon ECR CDK NPM 패키지를 설치해야합니다:
 
 ```sh
-npm install --save-dev @aws-cdk/aws-ecr@1.14.0
+npm install --save-dev @aws-cdk/aws-ecr@1.15.0
 ```
 
 그런 다음 다음과 같이 ECR 리포지토리 정의를 EcrStack에 추가합니다:
@@ -297,7 +297,7 @@ aws ecr describe-images --repository-name mythicalmysfits/service
 이제 ECS 인스턴스를 정의합니다. 정의하기 이전에 아래 명령으로 AWS ECS CDK NPM 패키지를 설치합니다:
 
 ```sh
-npm install --save-dev @aws-cdk/aws-ecs@1.14.0 @aws-cdk/aws-ecs-patterns@1.14.0
+npm install --save-dev @aws-cdk/aws-ecs@1.15.0 @aws-cdk/aws-ecs-patterns@1.15.0
 ```
 
 이전과 마찬가지로 `lib` 폴더에 `ecs-stack.ts`이라는 파일을 생성합니다:  
@@ -492,7 +492,7 @@ curl http://<replace-with-your-nlb-address>/mysfits
 
 > **참고:** Network Load Balancer는 SSL/TLS 인증서가 설치되어 있지 않으므로 HTTP (http://) 요청만 지원합니다. 이 워크샵에서는 http:// 으로만 요청을 보내야 합니다. https:// 요청은 정상적으로 동작하지 않을 것입니다.
 
-### Mythical Mysfits가 NLB를 호출하도록 변경
+### 신비한 미스핏츠(Mythical Mysfits)가 NLB를 호출하도록 변경
 
 #### API 엔드포인트 수정
 다음으로, 웹사이트가 이전에 S3에 업로드한 하드 코딩된 데이터를 사용하는 대신 새로운 API 백엔드와 통합해야 합니다. `workshop/source/module-2/web` 디렉토리에서 웹 애플리케이션 코드를 복사합니다:
@@ -509,7 +509,7 @@ API 호출에 동일한 NLB URL을 사용하기 위해 `workshop/web/index.html`
 
 ![after replace](/images/module-2/after-replace.png)
 
-#### Mythical Mysfits 웹사이트 업데이트
+#### 신비한 미스핏츠(Mythical Mysfits) 웹사이트 업데이트
 S3에서 호스팅되는 웹사이트를 업데이트하기 위해 `MythicalMysfits-Website` 스택을 배포합니다:
 
 ```sh
@@ -517,7 +517,7 @@ npm run build
 cdk deploy MythicalMysfits-Website
 ```
 
-업데이트된 Mythical Mysfits 웹사이트를 확인하기 위해 모듈 1 마지막에 출력하게끔 한 CloudFront URL을 사용하여 웹사이트에 접속합니다 (HTTP으로 접속하여야 합니다). AWS Fargate에 배포된 도커 컨테이너에서 동작하는 Flask API로부터 JSON 데이터를 받습니다.
+업데이트된 신비한 미스핏츠(Mythical Mysfits) 웹사이트를 확인하기 위해 모듈 1 마지막에 출력하게끔 한 CloudFront URL을 사용하여 웹사이트에 접속합니다 (HTTP으로 접속하여야 합니다). AWS Fargate에 배포된 도커 컨테이너에서 동작하는 Flask API로부터 JSON 데이터를 받습니다.
 
 
 ## 모듈 2b: AWS Code 서비스를 사용한 배포 자동화
@@ -534,7 +534,7 @@ cdk deploy MythicalMysfits-Website
 
 ```sh
 cd ~/environment/workshop/cdk
-npm install --save-dev @aws-cdk/aws-codecommit@1.14.0
+npm install --save-dev @aws-cdk/aws-codecommit@1.15.0
 ```
 
 이전처럼 `lib` 폴더에 `cicd-stack.ts` 파일을 생성합니다:
@@ -675,7 +675,7 @@ export class CiCdStack extends cdk.Stack {
 AWS CodeBuild와 AWS CodePipeline CDK NPM 패키지를 설치하기 위해 `workshop/cdk` 디렉토리에서 다음 명령을 실행합니다:
 
 ```sh
-npm install --save-dev @aws-cdk/aws-codebuild@1.14.0  @aws-cdk/aws-codepipeline@1.14.0  @aws-cdk/aws-codepipeline-actions@1.14.0
+npm install --save-dev @aws-cdk/aws-codebuild@1.15.0  @aws-cdk/aws-codepipeline@1.15.0  @aws-cdk/aws-codepipeline-actions@1.15.0
 ```
 
 `cicd-stack.ts` 파일에 필요한 라이브러리를 import 하는 구문을 추가합니다:
@@ -972,7 +972,7 @@ git commit -m "I changed the age of one of the mysfits."
 git push
 ```
 
-변경 사항을 리포지토리에 푸시한 후 AWS 콘솔의 [CodePipeline 서비스 페이지에서](https://console.aws.amazon.com/codesuite/codepipeline/home/) CI/CD 파이프라인을 통해 변경이 어떻게 진행되는지 확인할 수 있습니다. 코드 변경을 커밋한 후 변경 사항이 Fargate에서 실행되는 라이브 서비스에 배포되는데 약 5~10분 정도 소요될 수 있습니다. 이 시간 동안 AWS CodePipeline은 CodeCommit 리포지토리에 변경된 코드가 체크인 되면 파이프라인을 실행하고, CodeBuild 프로젝트가 새로운 빌드를 시작하도록 하며, CodeBuild가 ECR에 푸시한 도커 이미지를 가져와 자동화된 ECS [Update Service](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/update-service.html) 액션을 수행하여 실행중인 컨테이너에 연결된 커넥션을 드레이닝하고, 새 이미지로 교체합니다. 변경 사항이 잘 적용되었는지 확인하기 위해 브라우저에서 Mythical Mysfits 웹사이트에 다시 접속해봅니다.
+변경 사항을 리포지토리에 푸시한 후 AWS 콘솔의 [CodePipeline 서비스 페이지에서](https://console.aws.amazon.com/codesuite/codepipeline/home/) CI/CD 파이프라인을 통해 변경이 어떻게 진행되는지 확인할 수 있습니다. 코드 변경을 커밋한 후 변경 사항이 Fargate에서 실행되는 라이브 서비스에 배포되는데 약 5~10분 정도 소요될 수 있습니다. 이 시간 동안 AWS CodePipeline은 CodeCommit 리포지토리에 변경된 코드가 체크인 되면 파이프라인을 실행하고, CodeBuild 프로젝트가 새로운 빌드를 시작하도록 하며, CodeBuild가 ECR에 푸시한 도커 이미지를 가져와 자동화된 ECS [Update Service](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/update-service.html) 액션을 수행하여 실행중인 컨테이너에 연결된 커넥션을 드레이닝하고, 새 이미지로 교체합니다. 변경 사항이 잘 적용되었는지 확인하기 위해 브라우저에서 신비한 미스핏츠(Mythical Mysfits) 웹사이트에 다시 접속해봅니다.
 
 CodePipeline 콘솔에서 코드 변경 진행 사항을 확인할 수 있습니다 (별다른 행동없이 콘솔에서 진행 사항을 확인할 수 있습니다):
 [AWS CodePipeline](https://console.aws.amazon.com/codepipeline/home)

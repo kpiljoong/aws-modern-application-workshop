@@ -257,7 +257,7 @@ bucket.grantRead(new iam.CanonicalUserPrincipal(
 ```typescript
 const cdn = new cloudfront.CloudFrontWebDistribution(this, "CloudFront", {
   viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.ALLOW_ALL,
-  priceClass: cloudfront.PriceClass.PRICE_CLASS_ALL,
+  priceClass: cloudfront.PriceClass.PRICE_CLASS_100,
   originConfigs: [
     {
       behaviors: [
