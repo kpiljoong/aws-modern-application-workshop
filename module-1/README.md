@@ -15,16 +15,16 @@
 * [Amazon Simple Storage Service (S3)](https://aws.amazon.com/s3/)
 * [Amazon CloudFront](https://aws.amazon.com/cloudfront/)
 
-이번 모듈에서는 주어진 지시를 따라 [AWS Cloud9](https://aws.amazon.com/cloud9/)에서 클라우드 기반 IDE를 생성하고, 첫번째 버전의 정적 Mythical Mysfits 웹사이트를 배포합니다. [Amazon S3](https://aws.amazon.com/s3/)는 HTTP를 통해 저장된 객체를 직접적으로 제공할 수 있는 내구성이 뛰어나고, 가용성이 높으며, 저렴한 객체 스토리지 서비스입니다. Amazon CloudFront는 네트워크 및 애플리케이션 수준의 보호 기능을 모두 제공하는 매우 안전한 CDN입니다. 애플리케이션과 트래픽은 추가 비용없이 AWS Shield Standard와 같은 다양한 내재된 보호 기능을 통해 이점을 얻습니다. 추가 비용 없이 사용자 지정 SSL 인증서를 생성 및 관리할 수 있는 AWS Certificate Manager (ACM)와 같은 기능도 사용할 수 있습니다.
+이번 모듈에서는 주어진 지시를 따라 [AWS Cloud9](https://aws.amazon.com/cloud9/)에서 클라우드 기반 IDE를 생성하고, 첫번째 버전의 정적 신비한 미스핏츠(Mythical Mysfits) 웹사이트를 배포합니다. [Amazon S3](https://aws.amazon.com/s3/)는 HTTP를 통해 저장된 객체를 직접적으로 제공할 수 있는 내구성이 뛰어나고, 가용성이 높으며, 저렴한 객체 스토리지 서비스입니다. Amazon CloudFront는 네트워크 및 애플리케이션 수준의 보호 기능을 모두 제공하는 매우 안전한 CDN입니다. 애플리케이션과 트래픽은 추가 비용없이 AWS Shield Standard와 같은 다양한 내재된 보호 기능을 통해 이점을 얻습니다. 추가 비용 없이 사용자 지정 SSL 인증서를 생성 및 관리할 수 있는 AWS Certificate Manager (ACM)와 같은 기능도 사용할 수 있습니다.
 
-S3와 CloudFront의 조합은 정적 웹 콘텐츠(html, js, css, 미디어 등)를 인터넷 사이트의 웹 브라우저에 직접 제공할 수 있는 매우 유용한 기능을 제공합니다. S3를 활용하여 콘텐츠를 호스팅하고 빠른 콘텐츠 전송 네트워크(CDN) 서비스인 CloudFront로 우리의 Mythical Mysfits 웹사이트를 짧은 대기 시간과 빠른 전송 속도로 전 세계 고객에게 안전하게 제공할 것입니다.
+S3와 CloudFront의 조합은 정적 웹 콘텐츠(html, js, css, 미디어 등)를 인터넷 사이트의 웹 브라우저에 직접 제공할 수 있는 매우 유용한 기능을 제공합니다. S3를 활용하여 콘텐츠를 호스팅하고 빠른 콘텐츠 전송 네트워크(CDN) 서비스인 CloudFront로 우리의 신비한 미스핏츠(Mythical Mysfits) 웹사이트를 짧은 대기 시간과 빠른 전송 속도로 전 세계 고객에게 안전하게 제공할 것입니다.
 
 ## 시작하기
 
 ### AWS 콘솔에 로그인
 시작하기 위해 워크샵에서 사용할 계정으로 [AWS Console](https://console.aws.amazon.com)에 로그인합니다.
 
-Mythical Mysfits 웹 애플리케이션은 필요한 AWS 서비스를 지원하는 모든 리전에 배포될 수 있습니다. 현재 지원하는 리전은 아래와 같습니다:
+신비한 미스핏츠(Mythical Mysfits) 웹 애플리케이션은 필요한 AWS 서비스를 지원하는 모든 리전에 배포될 수 있습니다. 현재 지원하는 리전은 아래와 같습니다:
 
 * us-east-1 (N. Virginia)
 * us-east-2 (Ohio)
@@ -63,7 +63,7 @@ Cloud9 홈페이지에서 **Create Environment**를 클릭합니다:
 IDE 생성이 끝난 뒤 아래와 같은 환영 화면을 볼 수 있습니다:
 ![cloud9-welcome](/images/module-1/cloud9-welcome.png)
 
-#### Mythical Mysfits 워크샵 리포지토리 복제
+#### 신비한 미스핏츠(Mythical Mysfits) 워크샵 리포지토리 복제
 
 Cloud9 IDE 밑에있는 패널에서 터미널 커맨드 라인을 볼 수 있습니다. 먼저, 워크샵에서 생성되고 사용될 파일들을 저장할 디렉토리를 생성합니다:
 
@@ -74,7 +74,7 @@ mkdir workshop && cd workshop
 터미널에서 다음 git 명령으로 이번 모듈에서 필요한 코드를 가져오겠습니다:
 
 ```sh
-git clone -b python-cdk https://github.com/kpiljoong/aws-modern-application-workshop.git source
+git clone -b kpiljoong/cdk-korean https://github.com/kpiljoong/aws-modern-application-workshop.git source
 ```
 
 리포지토리 복제가 완료된 후 IDE 왼쪽의 프로젝트 탐색기에서 복제한 파일을 볼 수 있습니다:
@@ -106,7 +106,7 @@ AWS CDK의 가장 큰 이점 중 하나는 재사용성의 원칙입니다. 애�
 만약 AWS CDK가 설치되어있지 않다면 다음 명령으로 Cloud9 환경에서 AWS CDK를 설치합니다:
 
 ```sh
-npm install -g aws-cdk@1.14.0
+npm install -g aws-cdk@1.15.0
 ```
 
 다음 명령을 실행하여 CDK의 버전을 확인합니다:
@@ -142,7 +142,7 @@ cdk init --language typescript
 
 > **참고:** 직접 스택 파일들을 생성할 것이므로 `cdk/lib/cdk-stack.ts` 파일과 `cdk/test/cdk.test.ts` 파일을 삭제해주세요.
 
-## Mythical Mysfits 웹사이트 생성
+## 신비한 미스핏츠(Mythical Mysfits) 웹사이트 생성
 
 이제 웹사이트 호스팅에 필요한 인프라를 정의해봅니다. 
 
@@ -181,7 +181,7 @@ new WebApplicationStack(app, "MythicalMysfits-Website");
 이제 필요한 파일이 준비되었으므로, S3와 CloudFront 인프라를 정의합니다. 진행하기 전, 사용할 npm 패키지에 대한 참조를 추가해야합니다. `workshop/cdk/` 디렉토리에서 다음 명령을 실행합니다:
 
 ```sh
-npm install --save-dev @types/node @aws-cdk/aws-cloudfront@1.14.0 @aws-cdk/aws-iam@1.14.0 @aws-cdk/aws-s3@1.14.0 @aws-cdk/aws-s3-deployment@1.14.0
+npm install --save-dev @types/node @aws-cdk/aws-cloudfront@1.15.0 @aws-cdk/aws-iam@1.15.0 @aws-cdk/aws-s3@1.15.0 @aws-cdk/aws-s3-deployment@1.15.0
 ```
 
 ### 웹 애플리케이션 코드 복사
@@ -348,7 +348,7 @@ cdk deploy MythicalMysfits-Website
 
 > **참고:** Mysfits 이미지를 볼 수 없다면 브라우저 설정에서 *mixed content*를 허용해주세요.
 
-축하합니다! 기본적인 정적 Mythical Mysfits 웹사이트를 만들었습니다!
+축하합니다! 기본적인 정적 신비한 미스핏츠(Mythical Mysfits) 웹사이트를 만들었습니다!
 
 이것으로 모듈 1을 마치겠습니다.
 
