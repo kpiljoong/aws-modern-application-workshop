@@ -33,7 +33,7 @@ export class WebApplicationStack extends cdk.Stack {
     // Definition for a new CloudFront web distribution, which enforces traffic over HTTPS
     const cdn = new cloudfront.CloudFrontWebDistribution(this, "CloudFront", {
       viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.ALLOW_ALL,
-      priceClass: cloudfront.PriceClass.PRICE_CLASS_ALL,
+      priceClass: cloudfront.PriceClass.PRICE_CLASS_100,
       originConfigs: [
         {
           behaviors: [
