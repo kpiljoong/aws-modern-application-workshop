@@ -15,9 +15,9 @@
 
 ### 개요
 
-이제 배포된 서비스와 작동하는 CI/CD 파이프라인을 통해 코드 리포지토리에 변경사항이 발생할 때 마다 서비스에 자동으로 배포되어 새로운 애플리케이션 기능을 구상에서부터 Mythical Mysfits 고객이 사용할 수 있도록 신속하게 이동할 수 있습니다. 향상된 민첩성과 함께 Mythical Mysfits 웹사이트 아키텍처에 데이터 계층인 또 다른 기본 기능을 추가해보겠습니다. 이 모듈에서는 AWS의 매우 빠른 성능을 제공하며 관리되고 확장 가능한 NoSQL 데이터베이스 서비스인 [Amazon DynamoDB](https://aws.amazon.com/dynamodb/)에 테이블을 추가할 것입니다. 모든 Mysfits를 정적 JSON 파일에 저장하지 않고, 웹사이트의 기능을 쉽게 추가하고 확장될 수 있도록 데이터베이스에 저장합니다.
+이제 배포된 서비스와 작동하는 CI/CD 파이프라인을 통해 코드 리포지토리에 변경사항이 발생할 때 마다 서비스에 자동으로 배포되어 새로운 애플리케이션 기능을 구상에서부터 신비한 미스핏츠(Mythical Mysfits) 고객이 사용할 수 있도록 신속하게 이동할 수 있습니다. 향상된 민첩성과 함께 신비한 미스핏츠(Mythical Mysfits) 웹사이트 아키텍처에 데이터 계층인 또 다른 기본 기능을 추가해보겠습니다. 이 모듈에서는 AWS의 매우 빠른 성능을 제공하며 관리되고 확장 가능한 NoSQL 데이터베이스 서비스인 [Amazon DynamoDB](https://aws.amazon.com/dynamodb/)에 테이블을 추가할 것입니다. 모든 Mysfits를 정적 JSON 파일에 저장하지 않고, 웹사이트의 기능을 쉽게 추가하고 확장될 수 있도록 데이터베이스에 저장합니다.
 
-### Mythical Mysfits에 NoSQL 데이터베이스 추가
+### 신비한 미스핏츠(Mythical Mysfits)에 NoSQL 데이터베이스 추가
 
 #### DynamoDB 테이블 생성
 
@@ -36,7 +36,7 @@ touch lib/dynamodb-stack.ts
 import cdk = require('@aws-cdk/core');
 
 export class DynamoDbStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id:string) {
+  constructor(scope: cdk.Construct, id: string) {
     super(scope, id);
 
     // The code that defines your stack goes here
@@ -44,41 +44,10 @@ export class DynamoDbStack extends cdk.Stack {
 }
 ```
 
-그런 다음 `bin/cdk.ts`의 CDK 애플리케이션 정의에 DynamoDbStack을 추가합니다. 추가 후 `bin/cdk.ts` 파일은 다음과 같아야합니다:
-
-```typescript
-#!/usr/bin/env node
-import 'source-map-support/register';
-import cdk = require("@aws-cdk/core");
-import { WebApplicationStack } from "../lib/web-application-stack";
-import { NetworkStack } from "../lib/network-stack";
-import { EcrStack } from "../lib/ecr-stack";
-import { EcsStack } from "../lib/ecs-stack";
-import { CiCdStack } from "../lib/cicd-stack";
-import { DynamoDbStack } from '../lib/dynamodb-stack';
-
-const app = new cdk.App();
-new WebApplicationStack(app, "MythicalMysfits-Website");
-const networkStack = new NetworkStack(app, "MythicalMysfits-Network");
-const ecrStack = new EcrStack(app, "MythicalMysfits-ECR");
-const ecsStack = new EcsStack(app, "MythicalMysfits-ECS", {
-    vpc: networkStack.vpc,
-    ecrRepository: ecrStack.ecrRepository
-});
-new CiCdStack(app, "MythicalMysfits-CICD", {
-    ecrRepository: ecrStack.ecrRepository,
-    ecsService: ecsStack.ecsService.service
-});
-const dynamoDbStack = new DynamoDbStack(app, "MythicalMysfits-DynamoDB", {
-    vpc: networkStack.vpc,
-    fargateService: ecsStack.ecsService.service
-});
-```
-
 이전에 했던 것 처럼 AWS DynamoDB CDK NPM 패키지를 설치해야 합니다:
 
 ```sh
-npm install --save-dev @aws-cdk/aws-dynamodb@1.14.0
+npm install --save-dev @aws-cdk/aws-dynamodb@1.15.0
 ```
 
 `dynamodb-stack.ts`파일 안에 필요한 모듈을 import 합니다:
@@ -196,6 +165,37 @@ props.fargateService.taskDefinition.addToTaskRolePolicy(
 );
 ```
 
+그런 다음 `bin/cdk.ts`의 CDK 애플리케이션 정의에 DynamoDbStack을 추가합니다. 추가 후 `bin/cdk.ts` 파일은 다음과 같아야합니다:
+
+```typescript
+#!/usr/bin/env node
+import 'source-map-support/register';
+import cdk = require("@aws-cdk/core");
+import { WebApplicationStack } from "../lib/web-application-stack";
+import { NetworkStack } from "../lib/network-stack";
+import { EcrStack } from "../lib/ecr-stack";
+import { EcsStack } from "../lib/ecs-stack";
+import { CiCdStack } from "../lib/cicd-stack";
+import { DynamoDbStack } from '../lib/dynamodb-stack';
+
+const app = new cdk.App();
+new WebApplicationStack(app, "MythicalMysfits-Website");
+const networkStack = new NetworkStack(app, "MythicalMysfits-Network");
+const ecrStack = new EcrStack(app, "MythicalMysfits-ECR");
+const ecsStack = new EcsStack(app, "MythicalMysfits-ECS", {
+    vpc: networkStack.vpc,
+    ecrRepository: ecrStack.ecrRepository
+});
+new CiCdStack(app, "MythicalMysfits-CICD", {
+    ecrRepository: ecrStack.ecrRepository,
+    ecsService: ecsStack.ecsService.service
+});
+const dynamoDbStack = new DynamoDbStack(app, "MythicalMysfits-DynamoDB", {
+    vpc: networkStack.vpc,
+    fargateService: ecsStack.ecsService.service
+});
+```
+
 완료 후 DynamoDB 테이블을 배포합니다. CDK 애플리케이션이 에러 없이 컴파일된걸 확인하고 애플리케이션을 배포합니다:
 
 ```sh
@@ -262,7 +262,7 @@ git commit -m "Add new integration to DynamoDB."
 git push
 ```
 
-이제 5~10분안에 CodePipeline의 CI/CD 파이프라인을 통해 Amazon ECS의 AWS Fargate에 배포된 Flask 서비스에 코드 변경이 적용되는걸 확인할 수 있습니다. AWS CodePipeline 콘솔을 탐색하여 파이프라인을 통한 변경 진행 상황을 확인해보세요.
+이제 5~10분 내에 CodePipeline의 CI/CD 파이프라인을 통해 Amazon ECS의 AWS Fargate에 배포된 Flask 서비스에 코드 변경이 적용되는걸 확인할 수 있습니다. AWS CodePipeline 콘솔을 탐색하여 파이프라인을 통한 변경 진행 상황을 확인해보세요.
 
 #### S3의 웹사이트 콘텐츠 업데이트
 
@@ -282,7 +282,7 @@ npm run build
 cdk deploy MythicalMysfits-Website
 ```
 
-Mythical Mysfits 웹사이트를 다시 방문하여 DynamoDB 테이블에서 로드되는 새 Mysfits와 Filter 기능이 어떻게 작동하는 확인할 수 있습니다.
+신비한 미스핏츠(Mythical Mysfits) 웹사이트를 다시 방문하여 DynamoDB 테이블에서 로드되는 새 Mysfits와 Filter 기능이 어떻게 작동하는 확인할 수 있습니다.
 
 이것으로 모듈 3을 마치겠습니다.
 

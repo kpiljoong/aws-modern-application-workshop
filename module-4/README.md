@@ -193,7 +193,7 @@ private generateSwaggerSpec(dnsName: string, vpcLink: apigateway.VpcLink): strin
 }
 ```
 
-And finally, back within the constructor, we define our API Gateway utilising the helper function we just wrote:
+마지막으로 생성자로 돌아가 API Gateway가 작성한 헬퍼 함수를 활용하도록 합니다:
 
 ```typescript
 const schema = this.generateSwaggerSpec(props.fargateService.loadBalancer.loadBalancerDnsName, vpcLink);
