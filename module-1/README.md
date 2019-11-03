@@ -74,7 +74,7 @@ mkdir workshop && cd workshop
 터미널에서 다음 git 명령으로 이번 모듈에서 필요한 코드를 가져오겠습니다:
 
 ```sh
-git clone -b kpiljoong/cdk-korean https://github.com/kpiljoong/aws-modern-application-workshop.git source
+git clone -b mad-workshop https://github.com/kpiljoong/aws-modern-application-workshop.git source
 ```
 
 리포지토리 복제가 완료된 후 IDE 왼쪽의 프로젝트 탐색기에서 복제한 파일을 볼 수 있습니다:
