@@ -2,7 +2,7 @@
 
 ![Architecture](/images/module-4/sagemaker-architecture.png)
 
-**완료에 필요한 시간:** 45분
+**완료에 필요한 시간:** 50분
 
 ---
 **시간이 부족한 경우:** `module-4/cdk`에 있는 완전한 레퍼런스 AWS CDK 코드를 참고하세요
@@ -31,7 +31,7 @@
 #### API Gateway VPC Link 추가
 RESTful API를 생성하여 VPC안에서 프라이빗하게 호스팅 되고 있는 백엔드 웹 서비스와 직접적으로 통합하기 위해 **API Gateway VPCLink**를 구성하겠습니다.
 
-> **참고:** For the purposes of this workshop, we created the NLB to be *internet-facing* so that it could be called directly in earlier modules. Because of this, even though we will be requiring Authorization tokens in our API after this module, our NLB will still actually be open to the public behind the API Gateway API.  In a real-world scenario, you should create your NLB to be *internal* from the beginning (or create a new internal load balancer to replace the existing one), knowing that API Gateway would be your strategy for Internet-facing API authorization. But for the sake of time, we'll use the NLB that we've already created that will stay publicly accessible.
+> **참고:** 워크샵이므로 NLB를 *internet-facing*로 만들어 앞서 만든 모듈들에서 호출되도록 하였습니다. 이로인해, API Gateway API 뒤에 퍼블릭으로 열려있습니다. 실제 프로덕션에서 사용할 때에는 NLB를 만들때부터 *internal*로 생성하는 것이 좋습니다 (또는 새로운 내부 로드 밸런서를 만들어 기존걸 대체할 수 있습니다).
 
 #### Swagger를 사용한 REST API 생성
 
@@ -111,7 +111,7 @@ const vpcLink = new apigateway.VpcLink(this, 'VPCLink', {
 
 이제 생성자 밑에 swagger 파일에 명시되어있는 API를 import할 헬퍼 함수를 작성하겠습니다:
 
-> **참고:** The `REPLACE_ME_COGNITO_USER_POOL_ID` is the **only** placeholder that needs to be replaced in this block of code. The remaining `REPLACE_ME` placeholders will be automatically replaced.
+> **참고:** `REPLACE_ME` 플레이스홀더의 값은 자동으로 대체되니 수정할 필요 없습니다.
 
 ```typescript
 private generateSwaggerSpec(dnsName: string, vpcLink: apigateway.VpcLink): string {
@@ -240,11 +240,9 @@ git push
 cp -r ~/environment/workshop/source/module-4/web/* ~/environment/workshop/web
 ```
 
-Cloud9 IDE에서 `~/environment/workshop/web/index.html` 파일을 열고 **REPLACE_ME**이 값을 위에서 복사한 값으로 교체한 뒤 저장합니다:
+Cloud9 IDE에서 `~/environment/workshop/web/index.html` 파일을 열고 **REPLACE_ME**의 값을 위에서 복사한 값으로 교체한 뒤 저장합니다:
 
 ![before-replace](/images/module-4/before-replace.png)
-
-> **참고:** The Cognito UserPool ID and the Cognito UserPool Client ID are the values you saved earlier on, e.g. `us-east-1_ab12345YZ` and  `6p3bs000no6a4ue1idruvd05ad` respectively. To retrieve the values of the API Gateway endpoint and AWS Region, you can use the following commands:
 
 이제 S3 호스팅 웹사이트를 업데이트하고 `MythicalMysfits-Website` 스택을 배포합니다:
 
@@ -261,10 +259,10 @@ cdk deploy MythicalMysfits-Website
 #### 데이터의 중요성
 머신 러닝 여정을 시작하기 앞서 데이터 수집을 해야 합니다. 이 데이터는 사용 사례에 대한 알고리즘의 이해와 정확한 예측/추론 능력을 정의합니다. 불충분하거나, 관련이 없거나, 부정확한 데이터를 사용한 머신 러닝을 애플리케이션에 추가하는 것은 이익보다 더 큰 불이익을 불러오는 위험성이 있습니다.
 
-[다시] 하지만 Mysfits 사이트에서는, mysfit 권장을 하기위한 방대한 양의 정확하고 어돕션 기록 데이터를 가지고 있지않습니다. 그래서 대신에 무작위로 많은 양의 데이터를 생성해서 사용하고자 합니다. 즉, 우리가 구축할 모델은 무작위 데이터를 기반으로 예측을 하게되어 정확도에 좋지 않은 영향을 줍니다. 이 데이터 세트를 통해 실제 애플리케이션에서 SageMaker를 *어떻게* 사용하는지에 익숙해질 수는 있지만, 실제 데이터 세트를 식별, 수집 및 선별하기 위해 실제 필요한 모든 단계를 고려하고 있어 머신 러닝을 성공적으로 사용될 수 있도록 합니다.
+하지만 Mysfits 사이트에서는, mysfit 권장을 하기위한 방대한 양의 정확한 기록 데이터를 가지고 있지않습니다. 그래서 대신에 무작위로 많은 양의 데이터를 생성해서 사용하고자 합니다. 즉, 우리가 구축할 모델은 무작위 데이터를 기반으로 예측을 하게되어 정확도에 좋지 않은 영향을 줍니다. 이 데이터 세트를 통해 실제 애플리케이션에서 SageMaker를 *어떻게* 사용하는지에 익숙해질 수는 있지만, 실제 데이터 세트를 식별, 수집 및 선별하기 위해 실제 필요한 모든 단계를 고려하고 있어 머신 러닝을 성공적으로 사용될 수 있도록 합니다.
 
 ### SageMaker로 호스팅 노트북 인스턴스 생성
-데이터를 큐레이션하고 알고리즘을 정의 및 실행하고 모델을 구축하는 등의 작업을 철저히 문서화하려는 데이터 과학자와 개발자는 **노트북** 이라는 단일 장소를 활용합니다. AWS SageMaker를 통해 머신 러닝에 사전 구성 및 최적화되어 있고 이미 [Jupyter Notebooks](http://jupyter.org/) 애플리케이션이 실행중인 EC2 인스턴스를 **노트북 인스턴스**라고 합니다. In order to create a notebook instance, we must first create some prerequisites that the notebook requires, namely an IAM Role that will give the notebook instance the permissions it needs to perform everything required.
+데이터를 큐레이션하고 알고리즘을 정의 및 실행하고 모델을 구축하는 등의 작업을 철저히 문서화하려는 데이터 과학자와 개발자는 **노트북** 이라는 단일 장소를 활용합니다. AWS SageMaker를 통해 머신 러닝에 사전 구성 및 최적화되어 있고 이미 [Jupyter Notebooks](http://jupyter.org/) 애플리케이션이 실행중인 EC2 인스턴스를 **노트북 인스턴스**라고 합니다. 노트북 인스턴스를 생성하기 위해 노트북이 필요한 것들을 먼저 준비해두어야 합니다. 즉, 노트북 인스턴스에 필요한 모든 것들을 수행할 권한을 부여할 IAM 역할이 필요합니다.
 
 AWS CDK를 사용하여 필요한 리소스들을 생성하기 위해 `workshop/cdk/lib` 폴더에 `sagemaker-stack.ts` 이라는 파일을 생성합니다:
 
@@ -630,7 +628,7 @@ cdk deploy MythicalMysfits-Website
 
 ### 워크샵 정리
 
-#### 모듈 7 정리:
+#### 모듈 4 정리:
 배포된 엔드포인트를 삭제하기 위해 SageMaker 노트북에 코드를 추가했습니다. 노트북으로 돌아가 이전에 완료한 다음 코드 셀을 실행하여 엔트포인트를 중단하여 추가 비용을 방지할 수 있습니다.
 
 #### 일반적인 워크샵 정리
