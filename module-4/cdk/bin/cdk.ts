@@ -9,6 +9,9 @@ import { EcsStack } from "../lib/ecs-stack";
 import { CiCdStack } from "../lib/cicd-stack";
 import { DynamoDbStack } from '../lib/dynamodb-stack';
 import { APIGatewayStack } from "../lib/apigateway-stack";
+import { KinesisFirehoseStack } from "../lib/kinesis-firehose-stack";
+import { XRayStack } from "../lib/xray-stack";
+import { SageMakerStack } from "../lib/sagemaker-stack";
 
 const app = new cdk.App();
 new WebApplicationStack(app, "MythicalMysfits-Website");
@@ -29,4 +32,9 @@ const dynamoDbStack = new DynamoDbStack(app, "MythicalMysfits-DynamoDB", {
 new APIGatewayStack(app, "MythicalMysfits-APIGateway", {
   fargateService: ecsStack.ecsService
 });
+new KinesisFirehoseStack(app, "MythicalMysfits-KinesisFirehose", {
+    table: dynamoDbStack.table
+});
+new XRayStack(app, "MythicalMysfits-XRay");
+new SageMakerStack(app, "MythicalMysfits-SageMaker");
 app.synth();

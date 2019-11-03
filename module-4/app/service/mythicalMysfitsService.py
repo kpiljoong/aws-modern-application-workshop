@@ -43,26 +43,6 @@ def getMysfit(mysfitId):
 
     return flaskResponse
 
-# increment the number of likes for the provided mysfit.
-@app.route("/mysfits/<mysfitId>/like", methods=['POST'])
-def likeMysfit(mysfitId):
-    serviceResponse = mysfitsTableClient.likeMysfit(mysfitId)
-
-    flaskResponse = Response(serviceResponse)
-    flaskResponse.headers["Content-Type"] = "application/json"
-
-    return flaskResponse
-
-# indicate that the provided mysfit should be marked as adopted.
-@app.route("/mysfits/<mysfitId>/adopt", methods=['POST'])
-def adoptMysfit(mysfitId):
-    serviceResponse = mysfitsTableClient.adoptMysfit(mysfitId)
-
-    flaskResponse = Response(serviceResponse)
-    flaskResponse.headers["Content-Type"] = "application/json"
-
-    return flaskResponse
-
 # Run the service on the local server it has been deployed to,
 # listening on port 8080.
 if __name__ == "__main__":
