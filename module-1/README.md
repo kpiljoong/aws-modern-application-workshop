@@ -36,7 +36,7 @@ S3와 CloudFront의 조합은 정적 웹 콘텐츠(html, js, css, 미디어 등)
 
 AWS 관리 콘솔의 오른쪽 위에 있는 드롭다운에서 리전을 선택합니다.
 
-### Mythical Mysifts IDE 생성
+### 신비한 미스핏츠(Mythical Mysfits) IDE 생성
 
 #### 새로운 AWS Cloud9 환경 생성
 
@@ -74,7 +74,7 @@ mkdir workshop && cd workshop
 터미널에서 다음 git 명령으로 이번 모듈에서 필요한 코드를 가져오겠습니다:
 
 ```sh
-git clone -b mad-workshop https://github.com/kpiljoong/aws-modern-application-workshop.git source
+git clone -b mad-workshop-go https://github.com/kpiljoong/aws-modern-application-workshop.git source
 ```
 
 리포지토리 복제가 완료된 후 IDE 왼쪽의 프로젝트 탐색기에서 복제한 파일을 볼 수 있습니다:
