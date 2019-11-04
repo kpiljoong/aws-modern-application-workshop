@@ -140,7 +140,7 @@ cdk deploy MythicalMysfits-Network
 
 ## Module 2a: AWS Fargate로 서비스 배포
 
-### Flask 서비스 컨테이너 생성
+### 서비스 컨테이너 생성
 
 #### 도커 이미지 생성
 
