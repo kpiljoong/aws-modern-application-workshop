@@ -459,6 +459,8 @@ const ecsStack = new EcsStack(app, "MythicalMysfits-ECS", {
 
 CDK 애플리케이션이 에러 없이 컴파일되는지 확인하고 (`npm run build` 또는 `npm run watch` 명령을 사용) 환경에 배포합니다:
 
+> **참고:** 이전에 배포했던 *MythicalMysfits-Network* 스택이 배포 완료된 뒤에 배포를 진행하셔야 정상적으로 구성됩니다.
+
 ```sh
 npm run build
 ```
@@ -476,13 +478,15 @@ cdk deploy MythicalMysfits-ECS
 
 #### 서비스 테스트
 
-브라우저를 통해 이전 작업 완료 후 출력되는 NLB DNS에 접속하여 작동하는지 확인합니다. AWS CLI 명령을 사용하여 mysfits 리소스에 요청을 보내봅니다:
+브라우저를 통해 이전 작업 완료 후 출력되는 NLB DNS에 접속하여 작동하는지 확인합니다. CURL 명령을 사용하여 mysfits 리소스에 요청을 보내봅니다:
 
 ```sh
 curl http://<replace-with-your-nlb-address>/mysfits
 ```
 
 이전에 도커 컨테이너를 로컬에서 테스트할 때 본 JSON 응답과 동일한 응답을 볼 수 있으며, 이를통해 Go 코드가 AWS Fargate에서 정상적으로 동작하고 있다는 걸 확인할 수 있습니다.
+
+> **참고:** 최초 접속 시 시간이 소요될 수 있습니다.
 
 > **참고:** Network Load Balancer는 SSL/TLS 인증서가 설치되어 있지 않으므로 HTTP (http://) 요청만 지원합니다. 이 워크샵에서는 http:// 으로만 요청을 보내야 합니다. https:// 요청은 정상적으로 동작하지 않을 것입니다.
 
@@ -511,7 +515,7 @@ npm run build
 cdk deploy MythicalMysfits-Website
 ```
 
-업데이트된 신비한 미스핏츠(Mythical Mysfits) 웹사이트를 확인하기 위해 모듈 1 마지막에 출력하게끔 한 CloudFront URL을 사용하여 웹사이트에 접속합니다 (HTTP으로 접속하여야 합니다). AWS Fargate에 배포된 도커 컨테이너에서 동작하는 Go 코드로부터 JSON 데이터를 받습니다.
+업데이트된 신비한 미스핏츠(Mythical Mysfits) 웹사이트를 확인하기 위해 모듈 1 마지막에 출력하게끔 한 CloudFront URL을 사용하여 웹사이트에 접속합니다 (HTTP로 접속하여야 합니다). AWS Fargate에 배포된 도커 컨테이너에서 동작하는 Go 코드로부터 JSON 데이터를 받습니다.
 
 
 ## 모듈 2b: AWS Code 서비스를 사용한 배포 자동화
@@ -950,7 +954,7 @@ cp -r ~/environment/workshop/source/module-2/app/* ~/environment/MythicalMysfits
 
 #### 코드 변경 푸시
 
-이전 섹션에서 Fargate 서비스를 생성하는데 사용한 완성된 코드는 AWS CodeCommit에서 클론한 로컬 리포지토리에 저장됩니다. 코드 변경 사항을 커밋하여 우리가 구성한 CI/CD 파이프라인이 잘 동작하는지 보겠습니다. Cloud9에서 `~/environment/MythicalMysfits-BackendRepository/service/mysfits-response.json` 파일을 열어 mysfits 중 하나의 나이를 다른 값으로 변경하고 저장합니다.
+이전 섹션에서 Fargate 서비스를 생성하는데 사용한 완성된 코드는 AWS CodeCommit에서 클론한 로컬 리포지토리에 저장됩니다. 코드 변경 사항을 커밋하여 우리가 구성한 CI/CD 파이프라인이 잘 동작하는지 보겠습니다. **Cloud9에서 `~/environment/MythicalMysfits-BackendRepository/service/mysfits-response.json` 파일을 열어 mysfits 중 하나의 나이를 다른 값으로 변경하고 저장합니다**.
 
 파일을 저장한 후 리포지토리 디렉토리로 이동합니다:
 

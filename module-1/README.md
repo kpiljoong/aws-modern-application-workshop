@@ -345,6 +345,8 @@ cdk deploy MythicalMysfits-Website
 
 표시된 URL로 이동하여 웹사이트를 확인하세요.
 
+> **참고:** HTTPS가 아닌 HTTP로 접근하셔야 합니다.
+
 ![mysfits-welcome](/images/module-1/mysfits-welcome.png)
 
 > **참고:** Mysfits 이미지를 볼 수 없다면 브라우저 설정에서 *mixed content*를 허용해주세요.
