@@ -153,7 +153,7 @@ const prod = new apigateway.CfnDeployment(this, 'Prod', {
 new cdk.CfnOutput(this, 'APIID', {
   value: api.ref,
   description: 'API Gateway ID'
-})
+});
 ```
 
 그리고 `bin/cdk.ts` 파일의 CDK 애플리케이션 정의에 APIGatewayStack을 추가합니다. 완료 후 `bin/cdk.ts`는 다음과 같아야합니다:
