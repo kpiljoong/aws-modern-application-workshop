@@ -248,7 +248,7 @@ aws dynamodb scan --table-name MysfitsTable
 요청은 AWS SDK for Go를 사용하여 구성됩니다. 이 SDK는 Go 코드를 통해 AWS 서비스와 상호 작용할 수 있는 간단하면서도 강력한 방법입니다. 이로 워크샵의 일부로 이미 실행한 AWS API 및 CLI 명령과 크게 대칭되는 서비스 클리아언트 정의 및 기능을 사용할 수 있습니다. **AWS SDK for Go**를 사용하여 이러한 명령들을 작동하는 Go 코드로 변환하는 것은 간단합니다. CodeCommit 리포지토리 디렉토리에 새로운 파일들을 복사하기 위해 다음 명령을 터미널에서 실행하세요:
 
 ```sh
-cp ~/environment/workshop/source/module-3/app/service/* ~/environment/MythicalMysfits-BackendRepository/service/
+cp -r ~/environment/workshop/source/module-3/app/* ~/environment/MythicalMysfits-BackendRepository/
 ```
 
 #### 업데이트 된 코드를 CI/CD 파이프라인으로 푸시
