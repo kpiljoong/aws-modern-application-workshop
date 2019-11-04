@@ -144,9 +144,9 @@ cdk deploy MythicalMysfits-Network
 
 #### 도커 이미지 생성
 
-다음으로 신비한 미스핏츠(Mythical Mysfits) 백엔드를 Flask로 작성된 마이크로서비스 API로 실행하는데 필요한 모든 코드 및 구성을 포함하는 도커 컨테이너 이미지를 만듭니다. Cloud9 내에서 도커 컨테이너 이미지를 빌드한 다음 Amazon Elastic Container Registry로 푸시합니다. 이를 통해 Fargate로 서비스를 만들 때 컨테이너 이미지를 가져올 수 있습니다.
+다음으로 신비한 미스핏츠(Mythical Mysfits) 백엔드를 Go로 작성된 마이크로서비스 API로 실행하는데 필요한 모든 코드 및 구성을 포함하는 도커 컨테이너 이미지를 만듭니다. Cloud9 내에서 도커 컨테이너 이미지를 빌드한 다음 Amazon Elastic Container Registry로 푸시합니다. 이를 통해 Fargate로 서비스를 만들 때 컨테이너 이미지를 가져올 수 있습니다.
 
-서비스 백엔드를 실행하는데 필요한 모든 코드는 Cloud9 IDE에 복제한 리포지토리의 디렉토리 `workshop/source/module-2/app/`에 저장되어있습니다. Flask를 사용하여 서비스 API를 생성하는 Python 코드를 검토하려면 `workshop/source/module-2/app/service/mythicalMysfitsService.py` 파일을 확인하세요.
+서비스 백엔드를 실행하는데 필요한 모든 코드는 Cloud9 IDE에 복제한 리포지토리의 디렉토리 `workshop/source/module-2/app/`에 저장되어있습니다. 서비스 API를 생성하는 Go 코드를 검토하려면 `workshop/source/module-2/app/service/mythicalMysfitsService.go` 파일을 확인하세요.
 
 도커는 생성한 Cloud9 IDE에 이미 설치되어 있습니다. 그래서 도커 이미지를 로컬에서 빌드하기위해 Cloud9 터미널에 다음 명령만 실행하면 됩니다:
 
@@ -175,12 +175,6 @@ Cloud9 내에서 이미지를 테스트하여 예상대로 작동하는지 테�
 
 ```
 docker run -p 8080:8080 REPLACE_ME_WITH_DOCKER_IMAGE_TAG
-```
-
-컨테이너가 로컬에서 작동중인걸 확인할 수 있습니다:
-
-```
- * Running on http://0.0.0.0:8080/ (Press CTRL+C to quit)
 ```
 
 로컬에서 서비스를 테스트해보기 위해 Cloud9 IDE에 내장된 웹브라우저를 열어 IDE 인스턴스에서 실행중인 애플리케이션을 미리 볼 수 있습니다. 미리보기 웹 브라우저를 열기위해 Cloud9의 메뉴바에서 **Preview > Preview Running Application**를 선택합니다:
@@ -488,7 +482,7 @@ cdk deploy MythicalMysfits-ECS
 curl http://<replace-with-your-nlb-address>/mysfits
 ```
 
-이전에 도커 컨테이너를 로컬에서 테스트할 때 본 JSON 응답과 동일한 응답을 볼 수 있으며, 이를통해 Python 웹 API가 AWS Fargate에서 정상적으로 동작하고 있다는 걸 확인할 수 있습니다.
+이전에 도커 컨테이너를 로컬에서 테스트할 때 본 JSON 응답과 동일한 응답을 볼 수 있으며, 이를통해 Go 코드가 AWS Fargate에서 정상적으로 동작하고 있다는 걸 확인할 수 있습니다.
 
 > **참고:** Network Load Balancer는 SSL/TLS 인증서가 설치되어 있지 않으므로 HTTP (http://) 요청만 지원합니다. 이 워크샵에서는 http:// 으로만 요청을 보내야 합니다. https:// 요청은 정상적으로 동작하지 않을 것입니다.
 
@@ -517,14 +511,14 @@ npm run build
 cdk deploy MythicalMysfits-Website
 ```
 
-업데이트된 신비한 미스핏츠(Mythical Mysfits) 웹사이트를 확인하기 위해 모듈 1 마지막에 출력하게끔 한 CloudFront URL을 사용하여 웹사이트에 접속합니다 (HTTP으로 접속하여야 합니다). AWS Fargate에 배포된 도커 컨테이너에서 동작하는 Flask API로부터 JSON 데이터를 받습니다.
+업데이트된 신비한 미스핏츠(Mythical Mysfits) 웹사이트를 확인하기 위해 모듈 1 마지막에 출력하게끔 한 CloudFront URL을 사용하여 웹사이트에 접속합니다 (HTTP으로 접속하여야 합니다). AWS Fargate에 배포된 도커 컨테이너에서 동작하는 Go 코드로부터 JSON 데이터를 받습니다.
 
 
 ## 모듈 2b: AWS Code 서비스를 사용한 배포 자동화
 
 ![Architecture](/images/module-2/architecture-module-2b.png)
 
-이제 서비스가 시작되어 동작중입니다. 서비스를 운영하며 Flask 서비스의 코드를 변경해야하는 일은 자주 발생하는 작업입니다. 서비스에 새로운 기능을 배포할 때마다 앞선 모든 과정을 반복하는건 개발 속도를 느리게 만드는 병목이 될 수 있습니다. 이를 해결하기 위해 지속적 통합 및 지속적 전달, 또는 CI/CD라 불리우는 기술이 등장합니다!
+이제 서비스가 시작되어 동작중입니다. 서비스를 운영하며 서비스의 코드를 변경해야하는 일은 자주 발생하는 작업입니다. 서비스에 새로운 기능을 배포할 때마다 앞선 모든 과정을 반복하는건 개발 속도를 느리게 만드는 병목이 될 수 있습니다. 이를 해결하기 위해 지속적 통합 및 지속적 전달, 또는 CI/CD라 불리우는 기술이 등장합니다!
 
 이번 섹션에서는 코드베이스에 대한 모든 코드 변경 사항을 마지막 섹션에서 만든 서비스에 자동으로 전달하는 완전 관리되는 CI/CD 스택을 만들어봅니다.
 
@@ -691,14 +685,14 @@ import actions = require('@aws-cdk/aws-codepipeline-actions');
 import iam = require('@aws-cdk/aws-iam');
 ```
 
-`CiCdStack` 파일에 CodeBuild 프로젝트를 정의하여 Python Flask 웹앱을 빌드하는 다음 코드를 추가합니다:
+`CiCdStack` 파일에 CodeBuild 프로젝트를 정의하여 Go 코드를 빌드하는 다음 코드를 추가합니다:
 
 ```typescript
 const codebuildProject = new codebuild.PipelineProject(this, "BuildProject", {
   projectName: "MythicalMysfitsServiceCodeBuildProject",
   environment: {
     computeType: codebuild.ComputeType.SMALL,
-    buildImage: codebuild.LinuxBuildImage.UBUNTU_14_04_PYTHON_3_5_2,
+    buildImage: codebuild.LinuxBuildImage.UBUNTU_14_04_GOLANG_1_11,
     privileged: true,
     environmentVariables: {
       AWS_ACCOUNT_ID: {
@@ -749,7 +743,7 @@ const sourceAction = new actions.CodeCommitSourceAction({
 });
 ```
 
-앞에서 Flask 웹 앱의 도커 이미지를 빌드하기 위해 생성한 CodeBuild 프로젝트를 사용하는 CodePipeline Build 액션을 정의합니다:
+앞에서 Go 코드의 도커 이미지를 빌드하기 위해 생성한 CodeBuild 프로젝트를 사용하는 CodePipeline Build 액션을 정의합니다:
 
 ```typescript
 const buildOutput = new codepipeline.Artifact();
@@ -827,7 +821,7 @@ export class CiCdStack extends cdk.Stack {
       projectName: "MythicalMysfitsServiceCodeBuildProject",
       environment: {
         computeType: codebuild.ComputeType.SMALL,
-        buildImage: codebuild.LinuxBuildImage.UBUNTU_14_04_PYTHON_3_5_2,
+        buildImage: codebuild.LinuxBuildImage.UBUNTU_14_04_GOLANG_1_11,
         privileged: true,
         environmentVariables: {
           AWS_ACCOUNT_ID: {
@@ -956,7 +950,7 @@ cp -r ~/environment/workshop/source/module-2/app/* ~/environment/MythicalMysfits
 
 #### 코드 변경 푸시
 
-이전 섹션에서 Fargate 서비스를 생성하는데 사용한 완성된 코드는 AWS CodeCommit에서 클론한 로컬 리포지토리에 저장됩니다. Flask 서비스를 변경한 후 변경 사항을 커밋하여 우리가 구성한 CI/CD 파이프라인이 잘 동작하는지 보겠습니다. Cloud9에서 `~/environment/MythicalMysfits-BackendRepository/service/mysfits-response.json` 파일을 열어 mysfits 중 하나의 나이를 다른 값으로 변경하고 저장합니다.
+이전 섹션에서 Fargate 서비스를 생성하는데 사용한 완성된 코드는 AWS CodeCommit에서 클론한 로컬 리포지토리에 저장됩니다. 코드 변경 사항을 커밋하여 우리가 구성한 CI/CD 파이프라인이 잘 동작하는지 보겠습니다. Cloud9에서 `~/environment/MythicalMysfits-BackendRepository/service/mysfits-response.json` 파일을 열어 mysfits 중 하나의 나이를 다른 값으로 변경하고 저장합니다.
 
 파일을 저장한 후 리포지토리 디렉토리로 이동합니다:
 
