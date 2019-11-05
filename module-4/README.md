@@ -597,6 +597,8 @@ cdk deploy MythicalMysfits-SageMaker
 
 curl을 사용하는 다음 CLI 명령으로 새로 배포한 서비스를 테스트해보겠습니다. 훈련 데이터에서 사용한 CSV 라인과 일치하는 새로운 데이터 포인트에 대한 추천이 표시됩니다. 바로 위에서 기록해둔 API Gateway 엔드포인트 값을 통해 REST API를 호출합니다. 아래처럼 엔드포인트 뒤에 /recommendations 을 붙여야합니다:
 
+> **참고:** 아래 curl을 통한 테스트는 Cloud9이 아닌 로컬 머신에서 직접 하셔야 합니다. 또는 Postman 등을 활용할 수도 있습니다.
+
 ```
 curl -X POST --data '{"entry": [1,2,3,4,5]}' REPLACE_ME_RECOMMENDATION_API_ENDPOINT/recommendations
 ```
