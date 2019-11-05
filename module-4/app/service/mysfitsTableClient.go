@@ -138,12 +138,14 @@ func (m Mysfit) toJson() string {
 	output := "{"
 
 	output += getItemStringAsJson("mysfitId", m.MysfitId) + ", "
-	output += getItemStringAsJson("thumbImageUri", m.ThumbImageUri) + ", "
+	output += getItemStringAsJson("name", m.Name)
+	output += getItemStringAsJson("species", m.Species) + ", "
+	output += getItemStringAsJson("description", m.Description) + ", "
+	output += getItemIntAsJson("age", m.Age) + ", "
 	output += getItemStringAsJson("goodEvil", m.GoodEvil) + ", "
 	output += getItemStringAsJson("lawChaos", m.LawChaos) + ", "
-	output += getItemStringAsJson("species", m.Species) + ", "
-	output += getItemStringAsJson("name", m.Name)
-
+	output += getItemStringAsJson("thumbImageUri", m.ThumbImageUri) + ", "
+	output += getItemStringAsJson("profileImageUri", m.ProfileImageUri) + ", "
 	output += "}"
 
 	return output
