@@ -165,7 +165,7 @@ props.fargateService.taskDefinition.addToTaskRolePolicy(
 );
 ```
 
-그런 다음 `bin/cdk.ts`의 CDK 애플리케이션 정의에 DynamoDbStack을 추가합니다. 추가 후 `bin/cdk.ts` 파일은 다음과 같아야합니다:
+그런 다음 `bin/cdk.ts`의 CDK 애플리케이션 정의에 DynamoDbStack을 추가합니다. 추가 후 `bin/cdk.ts`는 다음처럼 보여야 합니다:
 
 ```typescript
 #!/usr/bin/env node

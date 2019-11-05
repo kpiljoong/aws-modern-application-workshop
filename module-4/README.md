@@ -156,7 +156,7 @@ new cdk.CfnOutput(this, 'APIID', {
 });
 ```
 
-그리고 `bin/cdk.ts` 파일의 CDK 애플리케이션 정의에 APIGatewayStack을 추가합니다. 완료 후 `bin/cdk.ts`는 다음과 같아야합니다:
+그리고 `bin/cdk.ts` 파일의 CDK 애플리케이션 정의에 APIGatewayStack을 추가합니다. 완료 후 `bin/cdk.ts`는 다음처럼 보여야 합니다:
 
 ```typescript
 #!/usr/bin/env node
@@ -366,7 +366,7 @@ new cdk.CfnOutput(this, "recommendationsRepositoryCloneUrlSsh", {
 });
 ```
 
-그리고 `bin/cdk.ts` 파일의 CDK 애플리케이션 정의에 `SageMakerStack`를 추가합니다. 완료 후 `bin/cdk.ts` 파일은 다음과 같을 것 입니다:
+그리고 `bin/cdk.ts` 파일의 CDK 애플리케이션 정의에 `SageMakerStack`를 추가합니다. 완료 후 `bin/cdk.ts`는 다음처럼 보여야 합니다:
 
 ```typescript
 #!/usr/bin/env node

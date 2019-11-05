@@ -60,7 +60,7 @@ export class NetworkStack extends cdk.Stack {
 }
 ```
 
-그런 다음 `bin/cdk.ts`의 CDK 애플리케이션 정의에 NetworkStack을 추가합니다. 최종적으로 `bin/cdk.ts` 파일은 다음과 같습니다:
+그런 다음 `bin/cdk.ts`의 CDK 애플리케이션 정의에 NetworkStack을 추가합니다. 최종적으로 `bin/cdk.ts`는 다음처럼 보여야 합니다:
 
 ```typescript
 #!/usr/bin/env node
@@ -212,7 +212,7 @@ export class EcrStack extends cdk.Stack {
 }
 ```
 
-그런 다음 이전에 한 것처럼 ECRStack을 `bin/cdk.ts`의 CDK 애플리케이션 정의에 추가합니다. 완료되면 `bin/cdk.ts`는 다음과 같아야 합니다:
+그런 다음 이전에 한 것처럼 ECRStack을 `bin/cdk.ts`의 CDK 애플리케이션 정의에 추가합니다. 완료되면 `bin/cdk.ts`는 다음처럼 보여야 합니다:
 
 ```typescript
 #!/usr/bin/env node
@@ -436,7 +436,7 @@ this.ecsService.service.taskDefinition.addToTaskRolePolicy(
 );
 ```
 
-그런 후 이전과 마찬가지로 EcsStack을 `bin/cdk.ts`의 CDK 애플리케이션 정의에 추가합니다. 완료 후 `bin/cdk.ts`는 다음 처럼 보여야 합니다:
+그런 후 이전과 마찬가지로 EcsStack을 `bin/cdk.ts`의 CDK 애플리케이션 정의에 추가합니다. 완료 후 `bin/cdk.ts`는 다음처럼 보여야 합니다:
 
 ```typescript
 #!/usr/bin/env node
