@@ -327,8 +327,8 @@ import ecr = require('@aws-cdk/aws-ecr');
 
 ```typescript
 interface EcsStackProps extends cdk.StackProps {
-    vpc: ec2.Vpc,
-    ecrRepository: ecr.Repository
+    vpc: ec2.Vpc;
+    ecrRepository: ecr.Repository;
 }
 ```
 

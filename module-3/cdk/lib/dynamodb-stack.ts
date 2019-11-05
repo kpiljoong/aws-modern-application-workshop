@@ -4,7 +4,6 @@ import iam = require("@aws-cdk/aws-iam");
 import ec2 = require("@aws-cdk/aws-ec2");
 import ecs = require("@aws-cdk/aws-ecs");
 
-
 interface DynamoDbStackProps extends cdk.StackProps {
   vpc: ec2.Vpc;
   fargateService: ecs.FargateService;

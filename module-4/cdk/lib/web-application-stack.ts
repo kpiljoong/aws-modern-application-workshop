@@ -34,6 +34,7 @@ export class WebApplicationStack extends cdk.Stack {
     const cdn = new cloudfront.CloudFrontWebDistribution(this, "CloudFront", {
       viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.ALLOW_ALL,
       priceClass: cloudfront.PriceClass.PRICE_CLASS_100,
+      enableIpV6: false,
       originConfigs: [
         {
           behaviors: [

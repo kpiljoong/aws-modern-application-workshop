@@ -6,7 +6,7 @@ import s3deploy = require("@aws-cdk/aws-s3-deployment");
 import path = require('path');
 
 export class WebApplicationStack extends cdk.Stack {
-
+  
   constructor(scope: cdk.Construct, id: string) {
     super(scope, id);
 
@@ -34,6 +34,7 @@ export class WebApplicationStack extends cdk.Stack {
     const cdn = new cloudfront.CloudFrontWebDistribution(this, "CloudFront", {
       viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.ALLOW_ALL,
       priceClass: cloudfront.PriceClass.PRICE_CLASS_100,
+      enableIpV6: false,
       originConfigs: [
         {
           behaviors: [

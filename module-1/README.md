@@ -158,7 +158,7 @@ touch lib/web-application-stack.ts
 import cdk = require('@aws-cdk/core');
 
 export class WebApplicationStack extends cdk.Stack {
-  constructor(app: cdk.App, id: string) {
+  constructor(app: cdk.Construct, id: string) {
     super(app, id);
 
     // The code that defines your stack goes here
@@ -302,7 +302,7 @@ new s3deploy.BucketDeployment(this, "DeployWebsite", {
 ```typescript
 new cdk.CfnOutput(this, "CloudFrontURL", {
   description: "The CloudFront distribution URL",
-  value: "https://" + cdn.domainName
+  value: "http://" + cdn.domainName
 });
 ```
 
