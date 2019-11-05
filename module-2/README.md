@@ -970,7 +970,7 @@ git commit -m "I changed the age of one of the mysfits."
 git push
 ```
 
-변경 사항을 리포지토리에 푸시한 후 AWS 콘솔의 [CodePipeline 서비스 페이지에서](https://console.aws.amazon.com/codesuite/codepipeline/home/) CI/CD 파이프라인을 통해 변경이 어떻게 진행되는지 확인할 수 있습니다. 코드 변경을 커밋한 후 변경 사항이 Fargate에서 실행되는 라이브 서비스에 배포되는데 약 5~10분 정도 소요될 수 있습니다. 이 시간 동안 AWS CodePipeline은 CodeCommit 리포지토리에 변경된 코드가 체크인 되면 파이프라인을 실행하고, CodeBuild 프로젝트가 새로운 빌드를 시작하도록 하며, CodeBuild가 ECR에 푸시한 도커 이미지를 가져와 자동화된 ECS [Update Service](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/update-service.html) 액션을 수행하여 실행중인 컨테이너에 연결된 커넥션을 드레이닝하고, 새 이미지로 교체합니다. 변경 사항이 잘 적용되었는지 확인하기 위해 브라우저에서 신비한 미스핏츠(Mythical Mysfits) 웹사이트에 다시 접속해봅니다.
+변경 사항을 리포지토리에 푸시한 후 AWS 콘솔의 [CodePipeline 서비스 페이지에서](https://console.aws.amazon.com/codesuite/codepipeline/home/) CI/CD 파이프라인을 통해 변경이 어떻게 진행되는지 확인할 수 있습니다. 코드 변경을 커밋한 후 변경 사항이 Fargate에서 실행되는 라이브 서비스에 배포되는데 약 15분 정도 이내에 완료될 것 있니다. 이 시간 동안 AWS CodePipeline은 CodeCommit 리포지토리에 변경된 코드가 체크인 되면 파이프라인을 실행하고, CodeBuild 프로젝트가 새로운 빌드를 시작하도록 하며, CodeBuild가 ECR에 푸시한 도커 이미지를 가져와 자동화된 ECS [Update Service](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/update-service.html) 액션을 수행하여 실행중인 컨테이너에 연결된 커넥션을 드레이닝하고, 새 이미지로 교체합니다. 변경 사항이 잘 적용되었는지 확인하기 위해 브라우저에서 신비한 미스핏츠(Mythical Mysfits) 웹사이트에 다시 접속해봅니다.
 
 CodePipeline 콘솔에서 코드 변경 진행 사항을 확인할 수 있습니다 (별다른 행동없이 콘솔에서 진행 사항을 확인할 수 있습니다):
 [AWS CodePipeline](https://console.aws.amazon.com/codepipeline/home)

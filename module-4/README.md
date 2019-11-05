@@ -183,6 +183,7 @@ new CiCdStack(app, "MythicalMysfits-CICD", {
     ecsService: ecsStack.ecsService.service
 });
 const dynamoDbStack = new DynamoDbStack(app, "MythicalMysfits-DynamoDB", {
+    vpc: networkStack.vpc,
     fargateService: ecsStack.ecsService.service
 });
 new APIGatewayStack(app, "MythicalMysfits-APIGateway", {
@@ -468,7 +469,7 @@ mkdir ./service/
 cp -r ~/environment/workshop/source/module-4/app/service/recommendations.py ./service/
 ```
 
-API를 배포하기 전 서비스 Python 코드에 변경해야하는 코드가 있습니다. Cloud9에서 `~/environment/lambda-recommendations/service/recommendation.py` 파일을 열면 교체해야하는 한 줄이 보일 것 입니다: `REPLACE_ME_SAGEMAKER_ENDPOINT`
+API를 배포하기 전 서비스 Python 코드에 변경해야하는 코드가 있습니다. Cloud9에서 `~/environment/lambda-recommendations/service/recommendations.py` 파일을 열면 교체해야하는 한 줄이 보일 것 입니다: `REPLACE_ME_SAGEMAKER_ENDPOINT`
 
 필요한 값을 얻기 위해 다음 CLI 명령을 실행하여 SageMaker 엔드포인트를 읽어옵니다:
 
@@ -597,7 +598,7 @@ cdk deploy MythicalMysfits-SageMaker
 curl을 사용하는 다음 CLI 명령으로 새로 배포한 서비스를 테스트해보겠습니다. 훈련 데이터에서 사용한 CSV 라인과 일치하는 새로운 데이터 포인트에 대한 추천이 표시됩니다. 바로 위에서 기록해둔 API Gateway 엔드포인트 값을 통해 REST API를 호출합니다. 아래처럼 엔드포인트 뒤에 /recommendations 을 붙여야합니다:
 
 ```
-curl -X POST -data '{"entry": [1,2,3,4,5]}' REPLACE_ME_RECOMMENDATION_API_ENDPOINT/recommendations
+curl -X POST --data '{"entry": [1,2,3,4,5]}' REPLACE_ME_RECOMMENDATION_API_ENDPOINT/recommendations
 ```
 
 다음과 같은 응답을 요청의 결과로 받아야 합니다:
@@ -609,7 +610,7 @@ curl -X POST -data '{"entry": [1,2,3,4,5]}' REPLACE_ME_RECOMMENDATION_API_ENDPOI
 
 ### 웹사이트 콘텐츠 업데이트 및 새로운 사이트 S3에 푸시
 
-사용자에게 Mysfit 추천을 위한 질문들과 추천 결과를 보여줄 새로운 `index.html` 파일이 모듈 7에 포함되어 있습니다.
+사용자에게 Mysfit 추천을 위한 질문들과 추천 결과를 보여줄 새로운 `index.html` 파일이 모듈 4에 포함되어 있습니다.
 
 ![Recommendation Button SS](/images/module-4/recommendation-button-ss.png)
 
@@ -622,7 +623,7 @@ cdk deploy MythicalMysfits-Website
 
 이제 웹사이트에서 **Recommend a Mysfit** 버튼을 통해 질문에 대한 선택된 응답을 가지고 추천 마이크로서비스에 보내어 선호도에 맞는 mysfit를 추천해주는 걸 확인할 수 있습니다.
 
-축하합니다 모듈 7을 완료했습니다!
+축하합니다 모듈 4를 완료했습니다!
 
 
 ### 워크샵 정리

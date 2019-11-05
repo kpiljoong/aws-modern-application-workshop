@@ -262,7 +262,7 @@ git commit -m "Add new integration to DynamoDB."
 git push
 ```
 
-이제 5~10분 내에 CodePipeline의 CI/CD 파이프라인을 통해 Amazon ECS의 AWS Fargate에 배포된 Go 서비스에 코드 변경이 적용되는걸 확인할 수 있습니다. AWS CodePipeline 콘솔을 탐색하여 파이프라인을 통한 변경 진행 상황을 확인해보세요.
+이제 15분 정도 이내에 CodePipeline의 CI/CD 파이프라인을 통해 Amazon ECS의 AWS Fargate에 배포된 Go 서비스에 코드 변경이 적용되는걸 확인할 수 있습니다. AWS CodePipeline 콘솔을 탐색하여 파이프라인을 통한 변경 진행 상황을 확인해보세요.
 
 #### S3의 웹사이트 콘텐츠 업데이트
 

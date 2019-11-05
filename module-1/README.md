@@ -166,7 +166,7 @@ export class WebApplicationStack extends cdk.Stack {
 }
 ```
 
-`bin/cdk.ts` 파일에서 `WebApplicationStack`을 import 하기 위한 구문을 추가합니다:
+`bin/cdk.ts` 파일에서 `WebApplicationStack`을 import 하기 위한한 구문을 추가합니다. 완료 후 `bin/cdk.ts`는 다음처럼 보여야 합니다:
 
 ```typescript
 #!/usr/bin/env node
@@ -342,6 +342,10 @@ cdk deploy MythicalMysfits-Website
 * 버킷에 이미 존재하는 파일들 제거
 * 로컬 정적 콘텐츠를 버킷에 복사
 * 사이트에 접근할 수 있는 URL을 출력
+
+> **참고:** CloudFront 구성에 시간이 걸리니, 모듈 2로 넘어가 진행하고, 스택 배포가 완료된 뒤 다시 돌아와 아래 단계를 진행하시기 바랍니다.
+
+[모듈 2 진행](/module-2)
 
 표시된 URL로 이동하여 웹사이트를 확인하세요.
 

@@ -523,6 +523,19 @@
       profileScope = $scope;
     });
 
+    /*
+      A new event handling funciton if the profile modal is triggered,
+      to record that click event and sent it to our new streaming service
+      backend.
+    */
+    $('#profileModal').on('show.bs.modal', function (event) {
+      var button = $(event.relatedTarget);
+      var mysfitId = button.data('mysfitid');
+      if (mysfitId) {
+        getMysfit(mysfitId, updateModalText);
+      }
+    });
+
     function updateModalText(profileMysfit) {
       applyProfileScope(profileMysfit);
     }
