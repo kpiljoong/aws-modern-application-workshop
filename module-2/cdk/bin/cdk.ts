@@ -1,7 +1,6 @@
 #!/usr/bin/env node
-
-import cdk = require("@aws-cdk/core");
 import 'source-map-support/register';
+import cdk = require("@aws-cdk/core");
 import { WebApplicationStack } from "../lib/web-application-stack";
 import { NetworkStack } from "../lib/network-stack";
 import { EcrStack } from "../lib/ecr-stack";
