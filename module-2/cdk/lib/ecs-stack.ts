@@ -12,7 +12,7 @@ interface EcsStackProps extends cdk.StackProps {
 export class EcsStack extends cdk.Stack {
   public readonly ecsCluster: ecs.Cluster;
   public readonly ecsService: ecsPatterns.NetworkLoadBalancedFargateService;
-
+  
   constructor(scope: cdk.App, id: string, props: EcsStackProps) {
     super(scope, id);
 

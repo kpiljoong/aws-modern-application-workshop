@@ -12,6 +12,5 @@ export class NetworkStack extends cdk.Stack {
       natGateways: 2,
       maxAzs: 2
     });
-
   }
 }

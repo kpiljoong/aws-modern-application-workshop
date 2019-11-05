@@ -11,6 +11,7 @@ interface CiCdStackProps extends cdk.StackProps {
   ecrRepository: ecr.Repository;
   ecsService: ecs.FargateService;
 }
+
 export class CiCdStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props: CiCdStackProps) {
     super(scope, id);
@@ -37,6 +38,7 @@ export class CiCdStack extends cdk.Stack {
         }
       }
     });
+
     const codeBuildPolicy = new iam.PolicyStatement();
     codeBuildPolicy.addResources(backendRepository.repositoryArn)
     codeBuildPolicy.addActions(
@@ -48,6 +50,7 @@ export class CiCdStack extends cdk.Stack {
     codebuildProject.addToRolePolicy(
       codeBuildPolicy
     );
+
     props.ecrRepository.grantPullPush(codebuildProject.grantPrincipal);
 
     const sourceOutput = new codepipeline.Artifact();
@@ -58,6 +61,7 @@ export class CiCdStack extends cdk.Stack {
       repository: backendRepository,
       output: sourceOutput
     });
+
     const buildOutput = new codepipeline.Artifact();
     const buildAction = new actions.CodeBuildAction({
       actionName: "Build",
@@ -67,6 +71,7 @@ export class CiCdStack extends cdk.Stack {
       ],
       project: codebuildProject
     });
+    
     const deployAction = new actions.EcsDeployAction({
       actionName: "DeployAction",
       service: props.ecsService,

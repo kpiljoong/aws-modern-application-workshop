@@ -302,7 +302,7 @@ new s3deploy.BucketDeployment(this, "DeployWebsite", {
 ```typescript
 new cdk.CfnOutput(this, "CloudFrontURL", {
   description: "The CloudFront distribution URL",
-  value: "https://" + cdn.domainName
+  value: "http://" + cdn.domainName
 });
 ```
 
