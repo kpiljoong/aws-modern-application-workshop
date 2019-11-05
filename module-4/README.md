@@ -2,7 +2,7 @@
 
 ![Architecture](/images/module-4/sagemaker-architecture.png)
 
-**완료에 필요한 시간:** 50분
+**완료에 필요한 시간:** 60분
 
 ---
 **시간이 부족한 경우:** `module-4/cdk`에 있는 완전한 레퍼런스 AWS CDK 코드를 참고하세요
