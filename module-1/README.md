@@ -15,7 +15,7 @@
 * [Amazon Simple Storage Service (S3)](https://aws.amazon.com/s3/)
 * [Amazon CloudFront](https://aws.amazon.com/cloudfront/)
 
-이번 모듈에서는 주어진 지시를 따라 [AWS Cloud9](https://aws.amazon.com/cloud9/)에서 클라우드 기반 IDE를 생성하고, 첫번째 버전의 정적 신비한 미스핏츠(Mythical Mysfits) 웹사이트를 배포합니다. [Amazon S3](https://aws.amazon.com/s3/)는 HTTP를 통해 저장된 객체를 직접적으로 제공할 수 있는 내구성이 뛰어나고, 가용성이 높으며, 저렴한 객체 스토리지 서비스입니다. Amazon CloudFront는 네트워크 및 애플리케이션 수준의 보호 기능을 모두 제공하는 매우 안전한 CDN입니다. 애플리케이션과 트래픽은 추가 비용없이 AWS Shield Standard와 같은 다양한 내재된 보호 기능을 통해 이점을 얻습니다. 추가 비용 없이 사용자 지정 SSL 인증서를 생성 및 관리할 수 있는 AWS Certificate Manager (ACM)와 같은 기능도 사용할 수 있습니다.
+이번 모듈에서는 주어진 지시에 따라 [AWS Cloud9](https://aws.amazon.com/cloud9/)에서 클라우드 기반 IDE를 생성하고, 첫번째 버전의 정적 신비한 미스핏츠(Mythical Mysfits) 웹사이트를 배포합니다. [Amazon S3](https://aws.amazon.com/s3/)는 HTTP를 통해 저장된 객체를 직접적으로 제공할 수 있는 내구성이 뛰어나고, 가용성이 높으며, 저렴한 객체 스토리지 서비스입니다. Amazon CloudFront는 네트워크 및 애플리케이션 수준의 보호 기능을 모두 제공하는 매우 안전한 CDN입니다. 애플리케이션과 트래픽은 추가 비용없이 AWS Shield Standard와 같은 다양한 내재된 보호 기능을 통해 이점을 얻습니다. 추가 비용 없이 사용자 지정 SSL 인증서를 생성 및 관리할 수 있는 AWS Certificate Manager (ACM)와 같은 기능도 사용할 수 있습니다.
 
 S3와 CloudFront의 조합은 정적 웹 콘텐츠(html, js, css, 미디어 등)를 인터넷 사이트의 웹 브라우저에 직접 제공할 수 있는 매우 유용한 기능을 제공합니다. S3를 활용하여 콘텐츠를 호스팅하고 빠른 콘텐츠 전송 네트워크(CDN) 서비스인 CloudFront로 우리의 신비한 미스핏츠(Mythical Mysfits) 웹사이트를 짧은 대기 시간과 빠른 전송 속도로 전 세계 고객에게 안전하게 제공할 것입니다.
 
@@ -343,9 +343,7 @@ cdk deploy MythicalMysfits-Website
 * 로컬 정적 콘텐츠를 버킷에 복사
 * 사이트에 접근할 수 있는 URL을 출력
 
-> **참고:** CloudFront 구성에 시간이 걸리니, 모듈 2로 넘어가 진행하고, 스택 배포가 완료된 뒤 다시 돌아와 아래 단계를 진행하시기 바랍니다.
-
-[모듈 2 진행](/module-2)
+> **참고:** CloudFront 구성에 시간이 걸리니, 모듈 2로 넘어가 진행하고, 스택 배포가 완료된 뒤 다시 돌아와 아래 단계를 진행하시기 바랍니다. [모듈 2 진행](/module-2)
 
 표시된 URL로 이동하여 웹사이트를 확인하세요.
 

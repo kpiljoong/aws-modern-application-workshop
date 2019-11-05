@@ -145,7 +145,7 @@ func (m Mysfit) toJson() string {
 	output += getItemStringAsJson("goodEvil", m.GoodEvil) + ", "
 	output += getItemStringAsJson("lawChaos", m.LawChaos) + ", "
 	output += getItemStringAsJson("thumbImageUri", m.ThumbImageUri) + ", "
-	output += getItemStringAsJson("profileImageUri", m.ProfileImageUri) + ", "
+	output += getItemStringAsJson("profileImageUri", m.ProfileImageUri)
 
 	output += "}"
 
