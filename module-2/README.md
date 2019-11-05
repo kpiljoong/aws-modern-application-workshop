@@ -60,7 +60,7 @@ export class NetworkStack extends cdk.Stack {
 }
 ```
 
-그런 다음 `bin/cdk.ts`의 CDK 애플리케이션 정의에 NetworkStack을 추가합니다. 최종적으로 `bin/cdk.ts` 파일은 다음과 같습니다:
+그런 다음 `bin/cdk.ts`의 CDK 애플리케이션 정의에 NetworkStack을 추가합니다. 최종적으로 `bin/cdk.ts`는 다음처럼 보여야 합니다:
 
 ```typescript
 #!/usr/bin/env node
@@ -218,7 +218,7 @@ export class EcrStack extends cdk.Stack {
 }
 ```
 
-그런 다음 이전에 한 것처럼 ECRStack을 `bin/cdk.ts`의 CDK 애플리케이션 정의에 추가합니다. 완료되면 `bin/cdk.ts`는 다음과 같아야 합니다:
+그런 다음 이전에 한 것처럼 ECRStack을 `bin/cdk.ts`의 CDK 애플리케이션 정의에 추가합니다. 완료되면 `bin/cdk.ts`는 다음처럼 보여야 합니다:
 
 ```typescript
 #!/usr/bin/env node
@@ -442,7 +442,7 @@ this.ecsService.service.taskDefinition.addToTaskRolePolicy(
 );
 ```
 
-그런 후 이전과 마찬가지로 EcsStack을 `bin/cdk.ts`의 CDK 애플리케이션 정의에 추가합니다. 완료 후 `bin/cdk.ts`는 다음 처럼 보여야 합니다:
+그런 후 이전과 마찬가지로 EcsStack을 `bin/cdk.ts`의 CDK 애플리케이션 정의에 추가합니다. 완료 후 `bin/cdk.ts`는 다음처럼 보여야 합니다:
 
 ```typescript
 #!/usr/bin/env node
@@ -465,6 +465,8 @@ const ecsStack = new EcsStack(app, "MythicalMysfits-ECS", {
 
 CDK 애플리케이션이 에러 없이 컴파일되는지 확인하고 (`npm run build` 또는 `npm run watch` 명령을 사용) 환경에 배포합니다:
 
+> **참고:** 이전에 배포했던 *MythicalMysfits-Network* 스택이 배포 완료된 뒤에 배포를 진행하셔야 정상적으로 구성됩니다.
+
 ```sh
 npm run build
 ```
@@ -482,13 +484,15 @@ cdk deploy MythicalMysfits-ECS
 
 #### 서비스 테스트
 
-브라우저를 통해 이전 작업 완료 후 출력되는 NLB DNS에 접속하여 작동하는지 확인합니다. AWS CLI 명령을 사용하여 mysfits 리소스에 요청을 보내봅니다:
+브라우저를 통해 이전 작업 완료 후 출력되는 NLB DNS에 접속하여 작동하는지 확인합니다. CURL 명령을 사용하여 mysfits 리소스에 요청을 보내봅니다:
 
 ```sh
 curl http://<replace-with-your-nlb-address>/mysfits
 ```
 
 이전에 도커 컨테이너를 로컬에서 테스트할 때 본 JSON 응답과 동일한 응답을 볼 수 있으며, 이를통해 Python 웹 API가 AWS Fargate에서 정상적으로 동작하고 있다는 걸 확인할 수 있습니다.
+
+> **참고:** 최초 접속 시 시간이 소요될 수 있습니다.
 
 > **참고:** Network Load Balancer는 SSL/TLS 인증서가 설치되어 있지 않으므로 HTTP (http://) 요청만 지원합니다. 이 워크샵에서는 http:// 으로만 요청을 보내야 합니다. https:// 요청은 정상적으로 동작하지 않을 것입니다.
 
@@ -956,7 +960,7 @@ cp -r ~/environment/workshop/source/module-2/app/* ~/environment/MythicalMysfits
 
 #### 코드 변경 푸시
 
-이전 섹션에서 Fargate 서비스를 생성하는데 사용한 완성된 코드는 AWS CodeCommit에서 클론한 로컬 리포지토리에 저장됩니다. Flask 서비스를 변경한 후 변경 사항을 커밋하여 우리가 구성한 CI/CD 파이프라인이 잘 동작하는지 보겠습니다. Cloud9에서 `~/environment/MythicalMysfits-BackendRepository/service/mysfits-response.json` 파일을 열어 mysfits 중 하나의 나이를 다른 값으로 변경하고 저장합니다.
+이전 섹션에서 Fargate 서비스를 생성하는데 사용한 완성된 코드는 AWS CodeCommit에서 클론한 로컬 리포지토리에 저장됩니다. Flask 서비스를 변경한 후 변경 사항을 커밋하여 우리가 구성한 CI/CD 파이프라인이 잘 동작하는지 보겠습니다. **Cloud9에서 `~/environment/MythicalMysfits-BackendRepository/service/mysfits-response.json` 파일을 열어 mysfits 중 하나의 나이를 다른 값으로 변경하고 저장합니다**.
 
 파일을 저장한 후 리포지토리 디렉토리로 이동합니다:
 
@@ -972,7 +976,7 @@ git commit -m "I changed the age of one of the mysfits."
 git push
 ```
 
-변경 사항을 리포지토리에 푸시한 후 AWS 콘솔의 [CodePipeline 서비스 페이지에서](https://console.aws.amazon.com/codesuite/codepipeline/home/) CI/CD 파이프라인을 통해 변경이 어떻게 진행되는지 확인할 수 있습니다. 코드 변경을 커밋한 후 변경 사항이 Fargate에서 실행되는 라이브 서비스에 배포되는데 약 5~10분 정도 소요될 수 있습니다. 이 시간 동안 AWS CodePipeline은 CodeCommit 리포지토리에 변경된 코드가 체크인 되면 파이프라인을 실행하고, CodeBuild 프로젝트가 새로운 빌드를 시작하도록 하며, CodeBuild가 ECR에 푸시한 도커 이미지를 가져와 자동화된 ECS [Update Service](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/update-service.html) 액션을 수행하여 실행중인 컨테이너에 연결된 커넥션을 드레이닝하고, 새 이미지로 교체합니다. 변경 사항이 잘 적용되었는지 확인하기 위해 브라우저에서 신비한 미스핏츠(Mythical Mysfits) 웹사이트에 다시 접속해봅니다.
+변경 사항을 리포지토리에 푸시한 후 AWS 콘솔의 [CodePipeline 서비스 페이지에서](https://console.aws.amazon.com/codesuite/codepipeline/home/) CI/CD 파이프라인을 통해 변경이 어떻게 진행되는지 확인할 수 있습니다. 코드 변경을 커밋한 후 변경 사항이 Fargate에서 실행되는 라이브 서비스에 배포되는데 약 15분 정도 이내에 완료될 것 입니다. 이 시간 동안 AWS CodePipeline은 CodeCommit 리포지토리에 변경된 코드가 체크인 되면 파이프라인을 실행하고, CodeBuild 프로젝트가 새로운 빌드를 시작하도록 하며, CodeBuild가 ECR에 푸시한 도커 이미지를 가져와 자동화된 ECS [Update Service](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/update-service.html) 액션을 수행하여 실행중인 컨테이너에 연결된 커넥션을 드레이닝하고, 새 이미지로 교체합니다. 변경 사항이 잘 적용되었는지 확인하기 위해 브라우저에서 신비한 미스핏츠(Mythical Mysfits) 웹사이트에 다시 접속해봅니다.
 
 CodePipeline 콘솔에서 코드 변경 진행 사항을 확인할 수 있습니다 (별다른 행동없이 콘솔에서 진행 사항을 확인할 수 있습니다):
 [AWS CodePipeline](https://console.aws.amazon.com/codepipeline/home)

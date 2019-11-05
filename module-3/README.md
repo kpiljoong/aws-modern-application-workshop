@@ -165,7 +165,7 @@ props.fargateService.taskDefinition.addToTaskRolePolicy(
 );
 ```
 
-그런 다음 `bin/cdk.ts`의 CDK 애플리케이션 정의에 DynamoDbStack을 추가합니다. 추가 후 `bin/cdk.ts` 파일은 다음과 같아야합니다:
+그런 다음 `bin/cdk.ts`의 CDK 애플리케이션 정의에 DynamoDbStack을 추가합니다. 추가 후 `bin/cdk.ts`는 다음처럼 보여야 합니다:
 
 ```typescript
 #!/usr/bin/env node
@@ -245,10 +245,10 @@ aws dynamodb scan --table-name MysfitsTable
 #### 업데이트 된 Flask 서비스 코드 복사
 이제 테이블에 데이터를 로드하였으니 애플리케이션 코드를 변경하여 모듈 2에서 사용한 정적 JSON 파일이 아닌 테이블에서 데이터를 읽어오도록 하겠습니다. Flask 마이크로서비스를 위한 새로운 Python 파일들을 포함하였지만 정적 JSON 파일을 읽는 대신 DynamoDB 요청을 하도록 하겠습니다.
 
-*[다시]* 요청은 **boto3**라는 AWS Python SDK를 사용하여 구성됩니다. 이 SDK는 Python 코드를 통해 AWS 서비스와 상호 작용할 수 있는 간단하면서도 강력한 방법입니다. 이로 워크샵의 일부로 이미 실행한 AWS API 및 CLI 명령과 크게 대칭되는 서비스 클리아언트 정의 및 기능을 사용할 수 있습니다. **boto3**를 사용하면 명령을 Python 코드로 변화하는 것이 간단합니다. CodeCommit 리포지토리 디렉토리에 새로운 파일들을 복사하기 위해 다음 명령을 터미널에서 실행하세요:
+요청은 **boto3**라는 AWS Python SDK를 사용하여 구성됩니다. 이 SDK는 Python 코드를 통해 AWS 서비스와 상호 작용할 수 있는 간단하면서도 강력한 방법입니다. 이로 워크샵의 일부로 이미 실행한 AWS API 및 CLI 명령과 크게 대칭되는 서비스 클리아언트 정의 및 기능을 사용할 수 있습니다. **boto3**를 사용하여 이러한 명령을 Python 코드로 변환하는 것은 간단합니다. CodeCommit 리포지토리 디렉토리에 새로운 파일들을 복사하기 위해 다음 명령을 터미널에서 실행하세요:
 
 ```sh
-cp ~/environment/workshop/source/module-3/app/service/* ~/environment/MythicalMysfits-BackendRepository/service/
+cp -r ~/environment/workshop/source/module-3/app/service/* ~/environment/MythicalMysfits-BackendRepository/service/
 ```
 
 #### 업데이트 된 코드를 CI/CD 파이프라인으로 푸시
@@ -262,7 +262,7 @@ git commit -m "Add new integration to DynamoDB."
 git push
 ```
 
-이제 5~10분 내에 CodePipeline의 CI/CD 파이프라인을 통해 Amazon ECS의 AWS Fargate에 배포된 Flask 서비스에 코드 변경이 적용되는걸 확인할 수 있습니다. AWS CodePipeline 콘솔을 탐색하여 파이프라인을 통한 변경 진행 상황을 확인해보세요.
+이제 15분 정도 이내에 CodePipeline의 CI/CD 파이프라인을 통해 Amazon ECS의 AWS Fargate에 배포된 Flask 서비스에 코드 변경이 적용되는걸 확인할 수 있습니다. AWS CodePipeline 콘솔을 탐색하여 파이프라인을 통한 변경 진행 상황을 확인해보세요.
 
 #### S3의 웹사이트 콘텐츠 업데이트
 
