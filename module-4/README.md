@@ -479,7 +479,7 @@ aws sagemaker list-endpoints > ~/environment/sagemaker-endpoints.json
 
 `sagemaker-endpoints.json`파일을 열고 `knn-ml-m4-xlarge-` 접두사가 붙은 EndpointName 값을 복사합니다 (접두사는 Jupyter 노트북 내부에서 엔드포인트 이름의 접두사로 지정한 것 입니다).
 
-`recommendation.py` 파일에 EndpointValue 붙여넣고 저장합니다.
+`recommendations.py` 파일에 EndpointValue 붙여넣고 저장합니다.
 
 ### Questions 서비스 스택 생성
 
