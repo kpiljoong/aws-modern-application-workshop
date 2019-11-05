@@ -245,7 +245,7 @@ aws dynamodb scan --table-name MysfitsTable
 #### 업데이트 된 Go 서비스 코드 복사
 이제 테이블에 데이터를 로드하였으니 애플리케이션 코드를 변경하여 모듈 2에서 사용한 정적 JSON 파일이 아닌 테이블에서 데이터를 읽어오도록 하겠습니다. 마이크로서비스를 위한 새로운 Go 파일들을 포함하였지만 정적 JSON 파일을 읽는 대신 DynamoDB 요청을 하도록 하겠습니다.
 
-요청은 AWS SDK for Go를 사용하여 구성됩니다. 이 SDK는 Go 코드를 통해 AWS 서비스와 상호 작용할 수 있는 간단하면서도 강력한 방법입니다. 이로 워크샵의 일부로 이미 실행한 AWS API 및 CLI 명령과 크게 대칭되는 서비스 클리아언트 정의 및 기능을 사용할 수 있습니다. **AWS SDK for Go**를 사용하여 이러한 명령들을 작동하는 Go 코드로 변환하는 것은 간단합니다. CodeCommit 리포지토리 디렉토리에 새로운 파일들을 복사하기 위해 다음 명령을 터미널에서 실행하세요:
+요청은 **AWS SDK for Go**를 사용하여 구성됩니다. 이 SDK는 Go 코드를 통해 AWS 서비스와 상호 작용할 수 있는 간단하면서도 강력한 방법입니다. 이로 워크샵의 일부로 이미 실행한 AWS API 및 CLI 명령과 크게 대칭되는 서비스 클리아언트 정의 및 기능을 사용할 수 있습니다. **AWS SDK for Go**를 사용하여 이러한 명령들을 작동하는 Go 코드로 변환하는 것은 간단합니다. CodeCommit 리포지토리 디렉토리에 새로운 파일들을 복사하기 위해 다음 명령을 터미널에서 실행하세요:
 
 ```sh
 cp -r ~/environment/workshop/source/module-3/app/* ~/environment/MythicalMysfits-BackendRepository/

@@ -210,7 +210,7 @@ API ID는 다음 명령으로 확인할 수 있습니다:
 aws apigateway get-rest-apis --query 'items[?name==`MysfitsApi`][id]' --output text
 ```
 
-위의 주소를 복사하고 적절한 값으로 교체한 뒤 브라우저에서 접속합니다. 이전에 봤던 Mysfits JSON 응답을 볼 수 있을 것 입니다. 하지만 필요로하는 다른 API가 Go 서비스 백엔드에 추가되어 있지 않았으므로 추가해보겠습니다
+위의 주소를 복사하고 적절한 값으로 교체한 뒤 브라우저에서 접속합니다. 이전에 봤던 Mysfits JSON 응답을 볼 수 있을 것 입니다. 하지만 필요로하는 다른 API가 Go 서비스 백엔드에 추가되어 있지 않았으므로 추가해보겠습니다.
 
 ### 신비한 미스핏츠(Mythical Mysfits) 웹사이트 업데이트
 
