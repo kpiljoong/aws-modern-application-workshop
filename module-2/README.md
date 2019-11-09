@@ -461,12 +461,18 @@ CDK 애플리케이션이 에러 없이 컴파일되는지 확인하고 (`npm ru
 
 > **참고:** 이전에 배포했던 *MythicalMysfits-Network* 스택이 배포 완료된 뒤에 배포를 진행하셔야 정상적으로 구성됩니다.
 
+
 ```sh
 npm run build
 ```
 
-ECS 스택을 배포합니다:
+> **참고:** ECS 사용이 처음일 경우 아래 명령을 꼭 먼저 실행해야 합니다.
 
+```sh
+aws iam create-service-linked-role --aws-service-name ecs.amazonaws.com
+```
+
+ECS 스택을 배포합니다:
 
 ```sh
 cdk deploy MythicalMysfits-ECS
