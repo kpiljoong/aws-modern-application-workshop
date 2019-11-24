@@ -1,15 +1,15 @@
-# Module 5: Capturing User Behavior
+# 모듈 5: 사용자 행동 포착
 
 ![Architecture](/images/module-5/architecture-module-5.png)
 
-**Time to complete:** 30 minutes
+**완료에 필요한 시간:** 30분
 
 ---
-**Short of time?:** If you are short of time, refer to the completed reference AWS CDK code in `module-5/cdk`
+**시간이 부족한 경우:** `module-5/cdk`에 있는 완전한 레퍼런스 AWS CDK 코드를 참고하세요
 
 ---
 
-**Services used:**
+**사용된 서비스:**
 * [AWS CloudFormation](https://aws.amazon.com/cloudformation/)
 * [AWS Kinesis Data Firehose](https://aws.amazon.com/kinesis/data-firehose/)
 * [Amazon S3](https://aws.amazon.com/s3/)
@@ -17,35 +17,36 @@
 * [AWS Lambda](https://aws.amazon.com/lambda/)
 * [AWS CodeCommit](https://aws.amazon.com/codecommit/)
 
-### Overview
-Now that your Mythical Mysfits site is up and running, let's create a way to better understand how users are interacting with the website and its Mysfits.  It would be very easy for us to analyze user actions taken on the website that lead to data changes in our backend - when mysfits are adopted or liked.  But understanding the actions your users are taking on the website *before* a decision to like or adopt a mysfit could help you design a better user experience in the future that leads to mysfits getting adopted even faster.  To help us gather these insights, we will implement the ability for the website frontend to submit a tiny request, each time a mysfit profile is clicked by a user, to a new microservice API we'll create. Those records will be processed in real-time by a serverless code function, aggregated, and stored for any future analysis that you may want to perform.
+### 개요
+이제 신비한 미스핏츠 사이트가 시작되어 동작중입니다. 사용자가 웹사이트와 미스핏츠들과 어떻게 상호작용하는지 더 잘 이해할 수 있는 방법을 만들어 보겠습니다. 웹사이트에서 발생한 미스핏츠를 입양하고 좋아하는 사용자 행동을 분석하여 백엔드에서 데이터가 변경되도록 하는건 매우 쉬운 작업니다. 하지만 미스핏츠를 좋아하고 입양하는 *결정 전*의 사용자가 웹사이트에서 취한 행동을 이해하면 미래에 더 나은 사용자 경험을 설계하는데 도움을 주어 미스핏츠 들이 더 빠르게 입양되도록 할 수 있습니다. 이러한 통찰력을 수집할 수 있도록, 웹사이트 프론트엔드에서 사용자가 미스핏츠 프로필을 클릭할 때 마다 새로운 마이크로서비스 API에 작은 요청을 보내는 기능을 구현하겠습니다. 이러한 레코드는 서버리스 코드 함수에의해 실시간으로 처리되고, 집계 및 저장되어 향후 수행할 분석에 사용될 수 있습니다.
 
-Modern application design principles prefer focused, decoupled, and modular services.  So rather than add additional methods and capabilities within the existing Mysfits service that you have been working with so far, we will create a new and decoupled service for the purpose of receiving user click events from the Mysfits website.
+현대적인 애플리케이션 디자인 원칙은 집중적이고, 분리된 모듈식 서비스를 선호합니다. 그래서 지금까지 작업해온 기존 Mysfits 서비스 내에 추가적인 방법과 기능을 추가하는 대신, 미스핏츠 웹사이트에서 사용자 클릭 이벤트를 받는 목적의 새 분리된 서비스를 추가하겠습니다.
 
-The serverless real-time processing service stack you will be creating includes the following AWS resources:
+생성할 서버리스 실시간 처리 서비스 스택은 다음 AWS 리소스를 포함합니다:
 * An [**AWS Kinesis Data Firehose delivery stream**](https://aws.amazon.com/kinesis/data-firehose/): Kinesis Firehose is a highly available and managed real-time streaming service that accepts data records and automatically ingests them into several possible storage destinations within AWS, examples including an Amazon S3 bucket, or an Amazon Redshift data warehouse cluster. Kinesis Firehose also enables all of the records received by the stream to be automatically delivered to a serverless function created with **AWS Lambda** This means that code you've written can perform any additional processing or transformations of the records before they are aggregated and stored in the configured destination.
 * An [**Amazon S3 bucket**](https://aws.amazon.com/s3/): A new bucket will be created in S3 where all of the processed click event records are aggregated into files and stored as objects.
 * An [**AWS Lambda function**](https://aws.amazon.com/lambda/): AWS Lambda enables developers to write code functions that only contain what their logic requires and have their code be deployed, invoked, made highly reliable, and scale without having to manage infrastructure whatsoever. Here, a Serverless code function is defined using AWS SAM. It will be deployed to AWS Lambda, written in Python, and then process and enrich the click records that are received by the delivery stream.  The code we've written is very simple and the enriching it does could have been accomplished on the website frontend without any subsequent processing  at all.  The function retrieves additional attributes about the clicked on Mysfit to make the click record more meaningful (data that was already retrieved by the website frontend).  But, for the purpose of this workshop, the code is meant to demonstrate the architectural possibilities of including a serverless code function to perform any additional processing or transformation required, in real-time, before records are stored.  Once the Lambda function is created and the Kinesis Firehose delivery stream is configured as an event source for the function, the delivery stream will automatically deliver click records as events to code function we've created, receive the responses that our code returns, and deliver the updated records to the configured Amazon S3 bucket.
 * An [**Amazon API Gateway REST API**](https://aws.amazon.com/api-gateway/): AWS Kinesis Firehose provides a service API just like other AWS services, and in this case we are using its PutRecord operation to put user click event records into the delivery stream. But, we don't want our website frontend to have to directly integrate with the Kinesis Firehose PutRecord API.  Doing so would require us to manage AWS credentials within our frontend code to authorize those API requests to the PutRecord API, and it would expose to users the direct AWS API that is being depended on (which may encourage malicious site visitors to attempt to add records to the delivery stream that are malformed, or harmful to our goal of understanding real user behavior).  So instead, we will use Amazon API Gateway to create an **AWS Service Proxy** to the PutRecord API of Kinesis Firehose.  This allows us to craft our own public RESTful endpoint that does not require AWS credential management on the frontend for requests. Also, we will use a request **mapping template** in API Gateway as well, which will let us define our own request payload structure that will restrict requests to our expected structure and then transform those well-formed requests into the structure that the Kinesis Firehose PutRecord API requires.
 * [**IAM Roles**](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html): Kinesis Firehose requires a service role that allows it to deliver received records as events to the created Lambda function as well as the processed records to the destination S3 bucket. The Amazon API Gateway API also requires a new role that permits the API to invoke the PutRecord API within Kinesis Firehose for each received API request.
 
-Before we create the resources described above, we need to update and modify the Lambda function code it will deploy.
+위에서 설명한 리소스를 만들기 전에 Lambda 함수 코드를 업데이트하고 수정해야합니다.
 
-### Create a new CodeCommit Repository
+### 새 CodeCommit 리포지토리 생성
 
-This new stack you will deploy using the AWS Cloud Development Kit (CDK) will not only contain the infrastructure environment resources, but the application code itself that AWS Lambda will execute to process streaming events.  
+AWS Cloud Development Kit (CDK)를 사용하여 배포할 이 새로운 스택은 인프라 환경 리소스 뿐만 아니라 AWS Lambda가 스트리밍 이벤트 처리를 위해 실행할 애플리케이션 코드 자체도 포함됩니다.
 
-To create the necessary resources using the AWS CDK, create a new file in the `workshop/cdk/lib` folder called `kinesis-firehose-stack.ts`.
+AWS CDK를 사용하여 필요한 리소스를 생성하려면 `workshop/cdk/lib` 폴더에 `kinesis-firehose-stack.ts`라는 새 파일을 생성합니다:
 
 ```sh
 cd ~/environment/workshop/cdk
 touch lib/kinesis-firehose-stack.ts
 ```
 
-Within the file you just created, define the skeleton CDK Stack structure as we have done before, this time naming the class `KinesisFirehoseStack`:
+방금 만든 파일 내에서 이전에 수행한 것 처럼 스켈레톤 CDK 스택 구조를 정의하며 클래스명을 `KinesisFirehoseStack`으로 지정합니다:
 
 ```typescript
 import cdk = require('@aws-cdk/core');
+
 export class KinesisFirehoseStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id:string) {
     super(scope, id);
@@ -54,13 +55,13 @@ export class KinesisFirehoseStack extends cdk.Stack {
 }
 ```
 
-Install the AWS CDK npm package for Kinesis Firehose by executing the following command from within the `workshop/cdk/` directory:
+`workshop/cdk/` 디렉토리에서 다음 명령을 실행하여 Kinesis Firehose 용 AWS CDK NP 패키지를 설치합니다:
 
 ```sh
-npm install --save-dev @aws-cdk/aws-kinesisfirehose@1.9.0
+npm install --save-dev @aws-cdk/aws-kinesisfirehose
 ```
 
-Define the class imports for the code we will be writing:
+작성할 코드를 위한 클래스 import 문을 정의합니다:
 
 ```typescript
 import cdk = require('@aws-cdk/core');
@@ -74,7 +75,7 @@ import lambda = require("@aws-cdk/aws-lambda");
 import s3 = require("@aws-cdk/aws-s3");
 ```
 
-Define an interface that defines the properties our KinesisFirehoseStack will require:
+KinesisFirehoseStack에 필요한 속성을 정의하는 인터페이스를 정의합니다:
 
 ```typescript
 interface KinesisFirehoseStackProps extends cdk.StackProps {
@@ -82,13 +83,13 @@ interface KinesisFirehoseStackProps extends cdk.StackProps {
 }
 ```
 
-Now change the constructor of your KinesisFirehoseStack to require your properties object.
+속성 객체가 필요하도록 KinesisFirehoseStack의 생성자를 변경합니다:
 
 ```typescript
   constructor(scope: cdk.Construct, id: string, props: KinesisFirehoseStackProps) {
 ```
 
-Within the `KinesisFirehoseStack` constructor, add the CodeCommit repository we'll use for the Kinesis Firehose and Lambda code we will write:
+`KinesisFirehoseStack` 생서앚에서, 우리가 작성할 Kinesis Firehose와 Lambda 코드에 사용할 CodeCommit 리포지토리를 추가합니다:
 
 ```typescript
 const lambdaRepository = new codecommit.Repository(this, "ClicksProcessingLambdaRepository", {
@@ -106,19 +107,19 @@ new cdk.CfnOutput(this, "kinesisRepositoryCloneUrlSsh", {
 });
 ```
 
-Then, add the `KinesisFirehoseStack` to our CDK application definition in `bin/cdk.ts`, when done, your `bin/cdk.ts` file should look like this:
+그런 다음 `bin/cdk.ts`의 CDK 애플리케이션 정의에 `KinesisFirehoseStack`을 추가합니다. 완료한 뒤의 `bin/cdk.ts` 파일은 다음처럼 보여야 합니다:
 
 ```typescript
 #!/usr/bin/env node
-
-import cdk = require("@aws-cdk/core");
 import 'source-map-support/register';
+import cdk = require('@aws-cdk/core');
 import { WebApplicationStack } from "../lib/web-application-stack";
 import { NetworkStack } from "../lib/network-stack";
 import { EcrStack } from "../lib/ecr-stack";
 import { EcsStack } from "../lib/ecs-stack";
 import { CiCdStack } from "../lib/cicd-stack";
 import { DynamoDbStack } from '../lib/dynamodb-stack';
+import { CognitoStack } from '../lib/cognito-stack';
 import { APIGatewayStack } from "../lib/apigateway-stack";
 import { KinesisFirehoseStack } from "../lib/kinesis-firehose-stack";
 
@@ -138,54 +139,62 @@ const dynamoDbStack = new DynamoDbStack(app, "MythicalMysfits-DynamoDB", {
     vpc: networkStack.vpc,
     fargateService: ecsStack.ecsService.service
 });
+const cognito = new CognitoStack(app,  "MythicalMysfits-Cognito");
 new APIGatewayStack(app, "MythicalMysfits-APIGateway", {
-  fargateService: ecsStack.ecsService
+  userPoolId: cognito.userPool.userPoolId,
+  loadBalancerArn: ecsStack.ecsService.loadBalancer.loadBalancerArn,
+  loadBalancerDnsName: ecsStack.ecsService.loadBalancer.loadBalancerDnsName
 });
 new KinesisFirehoseStack(app, "MythicalMysfits-KinesisFirehose", {
     table: dynamoDbStack.table
 });
+app.synth();
 ```
 
-We are not yet finished writing the `KinesisFirehoseStack` implementation but let's deploy what we have written so far:
+`KinesisFirehoseStack` 구현이 아직 완료되지는 않았지만 지금까지 작성한 것을 배포해보겠습니다:
 
 ```sh
 cdk deploy MythicalMysfits-KinesisFirehose
 ```
 
-In the output of that command, copy the value for `"Repository Clone Url HTTP"`.  It should be of the form: `https://git-codecommit.REPLACE_ME_REGION.amazonaws.com/v1/repos/MythicalMysfits-ClicksProcessingLambdaRepository`
+명령의 출력에서 `"Repository Clone Url HTTP"`의 값을 복사합니다. `https://git-codecommit.REPLACE_ME_REGION.amazonaws.com/v1/repos/MythicalMysfits-ClicksProcessingLambdaRepository` 형식이어야 합니다.
 
-Next, let's clone that new and empty repository:
+다음으로 새 리포지토리를 클론합니다:
 
 ```sh
 cd ~/environment/
 git clone REPLACE_ME_WITH_ABOVE_CLONE_URL lambda-streaming-processor
 ```
 
-### Copy the Streaming Service Code Base
+### Streaming 서비스 코드 베이스 복사
 
-Now, let's move our working directory into this new repository:
+이제 작업 디렉토리를 새로운 리포지토리로 옮깁니다:
+
 ```
 cd ~/environment/lambda-streaming-processor/
 ```
 
-Then, copy the module-5 application components into this new repository directory:
+그런 다음 module-5 애플리케이션 구성요소를 이 새 리포지토리 디렉토리에 복사합니다:
+
 ```
 cp -r ~/environment/workshop/source/module-5/app/streaming/* .
 ```
 
-### Update the Lambda Function Package and Code
+### Lambda 함수 패키지 및 코드 업데이트
 
-#### Use pip to Intall Lambda Function Dependencies
-If you look at the code inside the `streamProcessor.py` file, you'll notice that it's using the `requests` and `os` Python packages to make an API requset to the Mythical Mysfits service you created previously.  External libraries are not automatically included in the AWS Lambda runtime environment, because different AWS customers may depend on different versions of various libraries, etc.  You will need to package all of your library dependencies together with your Lambda code function prior to it being uploaded to the Lambda service.  We will use the Python package manager `pip` to accomplish this.  In the Cloud9 terminal, run the following command to install the required packages and their dependencies locally alongside your function code:
+#### pip를 사용하여 Lambda 함수 종속성 설치
+
+`streamProcessor.py` 파일 내부의 코드를 보면, `requests`와 `os` Python 패키지를 사용하여 이전에 생성한 신비한 미스핏츠 서비스에 API 요청을 하는 것을 알 수 있습니다. 다른 AWS 고객이 다양한 버전의 다양한 라이브러리 등에 의존할 수 있으므로, 외부 라이브러리들은 AWS Lambda 런타임 환경에 자동으로 포함되지 않습니다. Lambda 서비스에 업로드하기 전에 모든 라이브러리 종속성을 Lambda 코드와 함께 패키지하여야 합니다. 이를 위해 Python 패키지 관리자 `pip`를 사용하겠습니다. Cloud9 터미널에서 다음 명령을 실행하여 필요한 패키지 및 종속성을 로컬로 설치합니다:
 
 ```
 pip install requests -t .
 ```
 
-Once this command completes, you will see several additional python package folders stored within your repository directory.  
+이 명령이 완료되면, 리포지토리 디렉토리에서 몇 가지 추가 python 패키지들을 볼 수 있을 것입니다.
 
-#### Push Your Code into CodeCommit
-Let's commit our code changes to the new repository so that they're saved in CodeCommit:
+#### CodeCommit으로 코드 푸시
+
+CodeCommit에 저장되도록 코드 변경 사항을 새 리포지토리에 커밋합니다:
 
 ```sh
 git add .
@@ -193,15 +202,15 @@ git commit -m "New stream processing service."
 git push
 ```
 
-### Creating the Streaming Service Stack
+### 스트리밍 서비스 스택 생성
 
-Change back into the `cdk` folder:
+`cdk` 폴더로 돌아갑니다:
 
 ```sh
 cd ~/environment/workshop/cdk
 ```
 
-Back in the `KinesisFirehoseStack` file,  we will now define the Kinesis Firehose infrastructure.  First, let's define the kinesis firehose implementation:
+`KinesisFirehoseStack` 파일로 돌아가서, Kinesis Firehose 인프라를 정의합니다. 먼저, kinesis firehose 구현을 정의합니다:
 
 ```typescript
 const clicksDestinationBucket = new s3.Bucket(this, "Bucket", {
@@ -382,7 +391,7 @@ clicks.addMethod("OPTIONS", new apigw.MockIntegration({
 );
 ```
 
-In the code we just wrote, there is a line that needs to be replaced with the ApiEndpoint for your Mysfits service API - the same service ApiEndpoint that you created in module-4 and used on the website frontend.  Be sure to update the your code.
+방금 작성한 코드에는 Mysfits 서비스 API의 ApiEndpoint로 대체되어야하는 행이 있습니다. 모듈 4에서 생성한 웹사이트 프론트엔드에 사용된 것과 동일한 서비스 ApiEndpoint입니다. 코드를 업데이트 합니다:
 
 ```typescript
   ## Replace "REPLACE_ME_API_URL" with the ApiEndpoint for your Mysfits service API, eg: 'https://ljqomqjzbf.execute-api.us-east-1.amazonaws.com/prod/'
@@ -391,44 +400,45 @@ In the code we just wrote, there is a line that needs to be replaced with the Ap
   }
 ```
 
-That service is responsible for integrating with the MysfitsTable in DynamoDB, so even though we could write a Lambda function that directly integrated with the DynamoDB table as well, doing so would intrude upon the purpose of the first microservice and leave us with multiple/separate code bases that integrated with the same table.  Instead, we will integrate with that table through the existing service and have a much more decoupled and modular application architecture.
+이 서비스는 DynamoDB의 MysfitsTable과 통합을 담당합니다. DynamoDB 테이블과 직접 통합하는 Lambda 함수를 작성할 수도 있지만, 이는 첫 마이크로서비스의 목적을 방해하며 같은 테이블과 통합되는 복수개의 분리된 코드 베이스가 됩니다. 대신에 기존 서비스를 통하여 테이블과 통합함으로써 더 분리된 모듈식 아키텍처를 갖도록 합니다.
 
-Finally, deploy the CDK Application for the final time.
+마지막으로 CDK 애플리케이션을 배포합니다:
 
 ```sh
 cdk deploy MythicalMysfits-KinesisFirehose
 ```
 
-Note down the API Gateway endpoint, as we will need it in the next step.
+다음 단계에서 필요한 API Gateway 엔드포인트를 기록해둡니다
 
-### Sending Mysfit Profile Clicks to the Service
+### 서비스에 미스핏츠 프로필 클릭 보내기
 
-#### Update the Website Content and Push the New Site to S3
-With the streaming stack up and running, we now need to publish a new version of our Mythical Mysfits frontend that includes the JavaScript that sends events to our service whenever a mysfit profile is clicked by a user.
+#### 웹사이트 콘텐츠를 업데이트하고 새 사이트를 S3에 푸시
 
-The new index.html file is included at: `~/environment/workshop/source/module-5/web/index.html`. Copy the new version of the website to the `workshop/web` directory:
+스트리밍 스택이 실행되고 동작하면, 사용자가 미스핏츠 프로필을 클릭할 때 마다 이벤트를 서비스로 보내는 JavaScript를 포함하는 새로운 버전의 신비한 미스핏츠 프론트엔드를 게시해야합니다.
+
+새로운 index.html 파일은 `~/environment/workshop/source/module-5/web/index.html`에 위치하고 있습니다. 웹사이틩 새 버전을 `workshop/web`디렉토리에 복사합니다:
 
 ```sh
 cp -r ~/environment/workshop/source/module-5/web/* ~/environment/workshop/web
 ```
 
-This file contains the same placeholders as module-4 that need to be updated, as well as an additional placeholder for the new stream processing service endpoint you just created. The `streamingApiEndpoint` value is the API Gateway endpoint you noted down earlier.
+이 파일에는 업데이트가 필요한 모듈-4와 동일한 플레이스홀더와 새 스트림 프로세싱 서비스 엔디포인트에 대한 추가 플레이스홀더를  포함하고 있습니다. `streamingApiEndpoint` 값은 앞에서 기록해둔 API Gateway 엔드포인트입니다.
 
-Now, let's update your S3 hosted website and deploy the `MythicalMysfits-Website` stack:
+이제 S3 호스팅 웹사이트를 업데이트하고 `MythicalMysfits-Website` 스택을 배포합니다:
 
 ```sh
 npm run build
 cdk deploy MythicalMysfits-Website
 ```
 
-Refresh your Mythical Mysfits website in the browser once more and you will now have a site that records and publishes each time a user clicks on a mysfits profile!
+브라우저에서 신비한 미스핏츠 웹사이트를 한번 더 새로고침하면 사용자가 미스핏츠 프로필을 클릭할 때마다 기록하고 게시하는 사이트를 볼 수 있습니다!
 
-To view the records that have been processed, they will arrive in the destination S3 bucket created as part of your MythicalMysfitsStreamingStack.  Visit the S3 console here and explore the bucket you created for the streaming records (it will be prefixed with `mythicalmysfits-kinesisfirehose-bucket...`):
+처리 된 레코드는 MythicalMysfitsStreamingStack의 일부로 생성된 대상 S3 버킷에 저장됩니다. S3 콘솔을 방문하여 스트리밍 레코드를 위해 생성한 버킷을 살펴보십시오 (`mythicalmysfits-kinesisfirehose-bucket...`의 접두사로 되어있을 것입니다):
 [Amazon S3 Console](https://s3.console.aws.amazon.com/s3/home)
 
-This concludes Module 5.
+이것으로 모듈 5를 마치겠습니다.
 
-### [Proceed to Module 6](/module-6)
+### [모듈 6 진행](/module-6)
 
 
 #### [AWS Developer Center](https://developer.aws)

@@ -1,46 +1,46 @@
-# Build a Modern Application on AWS (Python)
+# AWS에서 현대 애플리케이션 구축 (CDK)
 
 ![mysfits-welcome](/images/module-1/mysfits-welcome.png)
 
-### Welcome to the **Python** version of the Build a Modern Application on AWS Workshop!
+### **Python** 버전의 현대 애플리케이션 구축 워크샵에 오신걸 환영합니다!
 
-**AWS Experience: Beginner**
+**AWS 경험: 초급**
 
-**Time to Complete: 3-4 hours**
+**완료에 필요한 시간: 3-4시간**
 
-**Cost to Complete: Many of the services used are included in the AWS Free Tier. For those that are not, the sample application will cost, in total, less than $1/day.**
+**비용: 사용되는 대부분의 서비스는 AWS 프리티어에 포함됩니다. 포함되지 않는 서비스들에 대해서 하루 $1 이하의 요금이 청구될 수 있습니다.**
 
-**Tutorial Prereqs:**
+**준비사항:**
 
-* **An AWS Account and Administrator-level access to it**
+* **AWS 계정과 관리자(Administrator) 수준의 접근 권한**
 
-Please be sure to terminate all of the resources created during this workshop to ensure that you are no longer charged.
+워크샵이 끝난 뒤 워크샵에서 생성된 모든 리소스들은 반드시 종료하셔야 추가 과금이 발생하지 않습니다.
 
-**Note:**  Estimated workshop costs assume little to no traffic will be served by your demo website created as part of this workshop.
+**참고:** 비용 예상치는 워크샵을 통해 구축되는 데모 웹사이트에서 트래픽이 거의 또는 전혀 발생하지 않음을 가정합니다.
 
-### Application Architecture
+### 애플리케이션 아키텍처
 
 ![Application Architecture](/images/arch-diagram.png)
 
-The Mythical Mysfits website serves it's static content from Amazon S3 with Amazon CloudFront, provides a microservice API backend deployed as a container through AWS Fargate on Amazon ECS, stores data in a managed NoSQL database provided by Amazon DynamoDB, with authentication and authorization for the application enabled through AWS API Gateway and it's integration with Amazon Cognito.  The user website clicks will be sent as records to an Amazon Kinesis Firehose Delivery stream where those records will be processed by serverless AWS Lambda functions and then stored in Amazon S3.
+신비한 미스핏츠(The Mythical Mysfits) 웹사이트는 Amazon CloudFront와 함께 Amazon S3에서 정적 콘텐츠를 제공, Amazon ECS에서 AWS Fargate를 통해 컨테이너로 배포된 마이크로서비스 API 백엔드를 제공, Amazon DynamoDB가 제공하는 관리형 NoSQL 데이터베이스에 데이터를 저장, Amazon Cognito와 통합한 AWS API Gateway를 통해 애플리케이션에서 인증 및 권한 부여 기능을 제공합니다. 사용자 웹사이트 클릭은 Amazon Kinesis Firehose 전송 스트림에 레코드로서 보내어지며, 서버리스 AWS Lambda 함수에 의해 처리되어 Amazon S3에 저장됩니다.
 
-You will be creating and deploying changes to this application completely programmatically. You will use the AWS Command Line Interface to execute commands that create the required infrastructure components, which includes a fully managed CI/CD stack utilizing AWS CodeCommit, CodeBuild, and CodePipeline.  Finally, you will complete the development tasks required all within your own browser by leveraging the cloud-based IDE, AWS Cloud9.
+애플리케이션을 변경하고 배포하는 모든 것을 프로그래밍 방식으로 진행하게 됩니다. AWS CDK를 사용하여 필요한 인프라 구성 요소를 생성하며, AWS CodeCommit, CodeBuild, CodePipeline을 활용한 완전 관리되는 CI/CD 스택도 생성하게 됩니다. 그리고 필요한 모든 개발 작업들은 클라우드 기반의 IDE인 AWS Cloud9을 통해 브라우저에서 직접 수행하게 됩니다.
 
-## Begin the Modern Application Workshop
+## 현대 애플리케이션 워크샵 시작
 
-### [Proceed to Module 1](/module-1)
+### [모듈 1 진행](/module-1)
 
 
-### Workshop Clean-Up (Once Complete)
-Be sure to delete all of the resources created during the workshop in order to ensure that billing for the resources does not continue for longer than you intend.  We recommend that you utilize the AWS Console to explore the resources you've created and delete them when you're ready.  
+### 워크샵 정리 (완료 후)
+워크샵에서 생성 및 사용한 모든 리소스들은 반드시 삭제하여야 더 이상 비용이 발생하지 않습니다. AWS 콘솔을 통해 생성한 리소스를 전부 확인하고 삭제하는 것이 좋습니다.  
 
-For the cases where you provisioned resources using AWS CDK, you can remove those resources by simply running the following command which will remove all created CloudFormation stacks:
+AWS CDK를 사용하여 리소스를 프로비저닝한 경우, 생성된 CloudFormation 스택을 제거하는 다음 명령으로 리소스를 제거할 수 있습니다:
 
 ```
 cdk destroy
 ```
 
-To remove all of the created resources, you can visit the following AWS Consoles, which contain resources you've created during the Mythical Mysfits workshop:
+신비한 미스핏츠 워크샵에서 생성 및 사용한 모든 리소스의 제거를 아래의 AWS 콘솔에 접근하셔서 확인하기 바랍니다:
 * [AWS Kinesis](https://console.aws.amazon.com/kinesis/home)
 * [AWS Lambda](https://console.aws.amazon.com/lambda/home)
 * [Amazon S3](https://console.aws.amazon.com/s3/home)
@@ -58,7 +58,7 @@ To remove all of the created resources, you can visit the following AWS Consoles
 * [Amazon CloudFront](https://console.aws.amazon.com/cloudfront/home)
 
 
-[Proceed to Module 1](/module-1)
+[모듈 1 진행](/module-1)
 
 
 ## [AWS Developer Center](https://developer.aws)

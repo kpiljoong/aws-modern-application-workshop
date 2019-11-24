@@ -1,15 +1,15 @@
-# Module 2: Creating a Service with AWS Fargate
+# 모듈 2: AWS Fargate로 서비스 생성
 
 ![Architecture](/images/module-2/architecture-module-2.png)
 
-**Time to complete:** 60 minutes
+**완료에 필요한 시간:** 60분
 
 ---
-**Short of time?:** If you are short of time, refer to the completed reference AWS CDK code in `module-2/cdk`
+**시간이 부족한 경우:** `module-2/cdk`에 있는 완전한 레퍼런스 AWS CDK 코드를 참고하세요
 
 ---
 
-**Services used:**
+**사용된 서비스:**
 
 * [AWS CloudFormation](https://aws.amazon.com/cloudformation/)
 * [AWS Identity and Access Management (IAM)](https://aws.amazon.com/iam/)
@@ -23,30 +23,30 @@
 * [AWS CodeDeploy](https://aws.amazon.com/codedeploy/)
 * [AWS CodeBuild](https://aws.amazon.com/codebuild/)
 
-### Overview
+### 개요
 
-In Module 2, using [AWS CDK](https://aws.amazon.com/cdk/), you will create a new microservice hosted using [AWS Fargate](https://aws.amazon.com/fargate/) on [Amazon Elastic Container Service](https://aws.amazon.com/ecs/) so that your Mythical Mysfits website can have a application backend to integrate with. AWS Fargate is a deployment option in Amazon ECS that allows you to deploy containers without having to manage any clusters or servers. For our Mythical Mysfits backend, we will use Python and create a Flask app in a Docker container behind a Network Load Balancer. These will form the microservice backend for the frontend website to integrate with.
+모듈 2에서는 [AWS CDK](https://aws.amazon.com/cdk/)를 사용하여 [Amazon Elastic Container Service](https://aws.amazon.com/ecs/)의 [AWS Fargate](https://aws.amazon.com/fargate/)로 호스팅 되는 마이크로서비스를 생성하여 신비한 미스핏츠 웹사이트의 애플리케이션 백엔드를 구성합니다. AWS Fargate는 Amazon ECS의 배포 옵션으로서 클러스터 또는 서버 관리 없이 컨테이너를 배포할 수 있습니다. Python을 사용하여 Network Load Balancer 뒤에서 동작하는 Flask 앱의 도커 컨테이너를 생성하여 신비한 미스핏츠(Mythical Mysfits) 백엔드를 구성합니다. 이를 통해 프론트엔드 웹사이트와 통합되는 마이크로서비스 백엔드를 형성할 것 입니다.
 
-### Creating the Core Infrastructure using the AWS CDK
+### AWS CDK를 사용하여 핵심 인프라 생성
 
-Before we can create our service, we need to create the core infrastructure environment that the service will use, including the networking infrastructure in [Amazon VPC](https://aws.amazon.com/vpc/), and the [AWS Identity and Access Management](https://aws.amazon.com/iam/) Roles that will define the permissions that ECS and our containers will have on top of AWS.  
+서비스를 생성하기 전에 서비스가 사용할 코어 인프라 환경을 생성해야 합니다. 이는 [Amazon VPC](https://aws.amazon.com/vpc/)의 네트워킹 인프라와 ECS와 컨테이너가 AWS에서 필요한 권한을 정의하는 [AWS Identity and Access Management](https://aws.amazon.com/iam/) 역할을 포함합니다.
 
-The AWS CDK application you are about to write will create the following resources:
+작성할 AWS CDK 애플리케이션은 아래 리소스들을 생성합니다:
 
-* [**An Amazon VPC**](https://aws.amazon.com/vpc/) - a network environment that contains four subnets (two public and two private) in the 10.0.0.0/16 private IP space, as well as all the needed Route Table configurations.  The subnets for this network are created in separate AWS Availability Zones (AZ) to enable high availability across multiple physical facilities in an AWS Region. Learn more about how AZs can help you achieve High Availability [here](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.RegionsAndAvailabilityZones.html).
-* [**Two NAT Gateways**](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html) (one for each public subnet, also spanning multiple AZs) - allow the containers we will eventually deploy into our private subnets to communicate out to the Internet to download necessary packages, etc.
-* [**A DynamoDB VPC Endpoint**](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/vpc-endpoints-dynamodb.html) - our microservice backend will eventually integrate with [Amazon DynamoDB](https://aws.amazon.com/dynamodb/) for persistence (as part of module 3).
-* [**A Security Group**](https://docs.aws.amazon.com/vpc/latest/userguide/VPC_SecurityGroups.html) - Allows your docker containers to receive traffic on port 8080 from the Internet through the Network Load Balancer.
-* [**IAM Roles**](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html) - Identity and Access Management Roles are created. These will be used throughout the workshop to give AWS services or resources you create access to other AWS services like DynamoDB, S3, and more.
+* [**Amazon VPC**](https://aws.amazon.com/vpc/) - 10.0.0.0/16 프라이빗 IP 공간의 4개의 서브넷(2개의 퍼블릭, 2개의 프라이빗)과 필요로하는 라우트 테이블 구성을 포함하는 네트워크 환경. 이 네트워크의 서브넷은 별도의 AWS 가용 영역(AZ)에서 생성되어 AWS 리전의 여러 물리적 시설에 걸쳐 고가용성을 지원합니다. [여기](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.RegionsAndAvailabilityZones.html)에서 고가용성을 달성하는데 가용 영역이 어떻게 도움이 되는지 자세히 알아볼 수 있습니다.
+* [**2개의 NAT Gateways**](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html) (여러 AZ에 걸쳐 각 퍼블릭 서브넷마다 1개씩) - 프라이빗 서브넷에 배포할 컨테이너가 인터넷에서 필요한 패키지 등을 다운로드할 수 있도록 합니다.
+* [**DynamoDB VPC Endpoint**](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/vpc-endpoints-dynamodb.html) - 마이크로서비스 백엔드는 지속성을 위해 [Amazon DynamoDB](https://aws.amazon.com/dynamodb/)와 통합됩니다 (모듈 3에서 진행).
+* [**Security Group**](https://docs.aws.amazon.com/vpc/latest/userguide/VPC_SecurityGroups.html) - 도커 컨테이너가 Network Load Balancer를 통해 인터넷으로부터 8080 포트로 트래픽을 수신할 수 있도록 합니다.
+* [**IAM 역할**](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html) - 인증 및 접근 관리 역할이 생성됩니다. 이 역할은 워크샵 전체에서 DynamoDB, S3 등과 같은 다른 AWS 서비스 접근에 사용됩니다.
 
-In the `workshop/cdk` directory, create a new file in the `lib` folder called `network-stack.ts`.
+`workshop/cdk` 디렉토리의 `lib` 폴더에서 `network-stack.ts` 이름의 새 파일을 생성합니다:
 
 ```sh
 cd ~/environment/workshop/cdk
 touch lib/network-stack.ts
 ```
 
-Within the file you just created, define the skeleton CDK Stack structure, naming the class `NetworkStack`:
+생성한 파일에서 스켈레톤 CDK 스택 구조를 정의하고 `NetworkStack`으로 클래스명을 지정합니다:
 
 ```typescript
 import cdk = require('@aws-cdk/core');
@@ -60,7 +60,7 @@ export class NetworkStack extends cdk.Stack {
 }
 ```
 
-Then, add the NetworkStack to our CDK application definition in `bin/cdk.ts`, when done, your `bin/cdk.ts` should look like this:
+그런 다음 `bin/cdk.ts`의 CDK 애플리케이션 정의에 NetworkStack을 추가합니다. 최종적으로 `bin/cdk.ts`는 다음처럼 보여야 합니다:
 
 ```typescript
 #!/usr/bin/env node
@@ -74,15 +74,15 @@ new WebApplicationStack(app, "MythicalMysfits-Website");
 const networkStack = new NetworkStack(app, "MythicalMysfits-Network");
 ```
 
-Now, we can define our VPC using AWS CDK.  Once again, AWS CDK makes the implementation of AWS Components and Services a breeze by providing you with high level abstractions.  Let's demonstrate this now.
+이제 AWS CDK를 사용하여 VPC를 정의합니다. 다시 한번 강조드리자면, AWS CDK는 높은 수준의 추상화를 제공하여 AWS 구성 요소 및 서비스를 쉽게 구현할 수 있도록 합니다. 한번 확인해보겠습니다.
 
-First, we need to install the CDK NPM packages for Amazon EC2 and AWS IAM:
+먼저, Amazon EC2와 AWS IAM 용 CDK NPM 패키지를 설치합니다:
 
 ```sh
-npm install --save-dev @aws-cdk/aws-ec2@1.9.0 @aws-cdk/aws-iam@1.9.0
+npm install --save-dev @aws-cdk/aws-ec2@1.15.0 @aws-cdk/aws-iam@1.15.0
 ```
 
-Within the `network-stack.ts` file, define the following VPC construct:
+`network-stack.ts` 파일에서 다음 VPC 컨스트럭츠를 정의합니다:
 
 ```typescript
 import cdk = require('@aws-cdk/core');
@@ -100,25 +100,25 @@ export class NetworkStack extends cdk.Stack {
 }
 ```
 
-> **Note:** We are assigning the instance of our `ec2.Vpc` to a readonly property so that it may be referenced by other stacks.
+> **참고:** `ec2.Vpc`의 인스턴스를 다른 스택이 참조할 수 있도록 읽기 전용 속성을 할당합니다.
 
 
-That is all you need to define a VPC!  Let's now run the `cdk synth` command to observe what this single line generates.  In a terminal window run the following command:
+이 코드가 VPC를 정의하는데 필요한 전부입니다! `cdk synth` 명령을 실행하여 이 한 줄이 생성하는 것을 확인해보겠습니다. 터미널 윈도우에서 다음 명령을 실행합니다:
 
 ```sh
 cdk synth MythicalMysfits-Network -o templates
 ```
 
-This command will generate the AWS CloudFormation template for the NetworkStack and place it in a folder called templates.  Open the generated file now and review the contents.  
+이 명령은 NetworkStack의 AWS CloudFormation 템플릿을 생성하여 templates 이라는 폴더에 저장합니다. 생성된 파일을 열고 내용을 확인합니다.
 
-In the generated file, you will find that one line of code generated a huge amount of AWS CloudFormation, including:
+단 한줄의 코드가 다음을 포함하는 엄청난 양의 AWS CloudFormation을 생성한 것을 확인할 수 있습니다:
 
-* A VPC construct;
-* Public, private and isolated subnets in each of the availability zones in your region
-* Routing tables for each of the subnets
-* NAT and Internet Gateways for each AZ
+* A VPC 컨스트럭츠;
+* 리전의 각 가용 영역의 퍼블릭, 프라이빗, 격리된 서브넷
+* 각 서브넷의 라우팅 테이블
+* 각 가용 영역의 NAT와 인터넷 게이트웨이
 
-But lets now customise the VPC we are creating by adding some property overrides.  Change your VPC definiton to reflect the following:
+일부 속성을 재정의하여 생성중인 VPC를 수정 해보겠습니다. VPC 정의를 다음과 같이 변경합니다:
 
 ```typescript
 this.vpc = new ec2.Vpc(this, "VPC", {
@@ -127,83 +127,84 @@ this.vpc = new ec2.Vpc(this, "VPC", {
 });
 ```
 
-Here we are defining the maximum number of NAT Gateways we want to establish and the maximum number of AZs we want to deploy to.
+구축하려는 최대 NAT 게이트웨이 수와 배포하려는 최대 가용 영역의 수를 정의했습니다.
 
-> **Note:** once you've completed the changes above, compare your `network-stack.ts` file with the one in the `workshop/source/module-2/cdk/lib` folder and make sure it looks the same.
+> **참고:** 위의 변경을 한 후 `network-stack.ts` 파일과 `workshop/source/module-2/cdk/lib` 폴더에 있는 파일을 비교하고, 동일한지 확인 하시기 바랍니다.
 
-Now, deploy your VPC using the following command:
+이제 다음 명령을 사용하여 VPC를 배포합니다:
 
 ```sh
 npm run build
 cdk deploy MythicalMysfits-Network
 ```
 
-## Module 2a: Deploying a Service with AWS Fargate
+## Module 2a: AWS Fargate로 서비스 배포
 
-### Creating a Flask Service Container
+### Flask 서비스 컨테이너 생성
 
-#### Building A Docker Image
+#### 도커 이미지 생성
 
-Next, you will create a docker container image that contains all of the code and configuration required to run the Mythical Mysfits backend as a microservice API created with Flask.  We will build the docker container image within Cloud9 and then push it to the Amazon Elastic Container Registry, where it will be available to pull when we create our service using Fargate.
+다음으로 신비한 미스핏츠 백엔드를 Flask로 작성된 마이크로서비스 API로 실행하는데 필요한 모든 코드 및 구성을 포함하는 도커 컨테이너 이미지를 만듭니다. Cloud9 내에서 도커 컨테이너 이미지를 빌드한 다음 Amazon Elastic Container Registry로 푸시합니다. 이를 통해 Fargate로 서비스를 만들 때 컨테이너 이미지를 가져올 수 있습니다.
 
-All of the code required to run our service backend is stored within the `workshop/source/module-2/app/` directory of the repository you've cloned into your Cloud9 IDE.  If you would like to review the Python code that uses Flask to create the service API, view the `workshop/source/module-2/app/service/mythicalMysfitsService.py` file.
+서비스 백엔드를 실행하는데 필요한 모든 코드는 Cloud9 IDE에 복제한 리포지토리의 디렉토리 `workshop/source/module-2/app/`에 저장되어있습니다. Flask를 사용하여 서비스 API를 생성하는 Python 코드를 검토하려면 `workshop/source/module-2/app/service/mythicalMysfitsService.py` 파일을 확인하세요.
 
-Docker comes already installed on the Cloud9 IDE that you've created, so in order to build the docker image locally, all we need to do is run the following commands in the Cloud9 terminal:
+도커는 생성한 Cloud9 IDE에 이미 설치되어 있습니다. 그래서 도커 이미지를 로컬에서 빌드하기위해 Cloud9 터미널에 다음 명령만 실행하면 됩니다:
 
-* Navigate to `~/environment/workshop/source/module-2/app`
+* `~/environment/workshop/source/module-2/app`로 이동합니다.
 
 ```
 cd ~/environment/workshop/source/module-2/app
 ```
 
-* Replace *REPLACE_ME_ACCOUNT_ID* with your account ID and *REPLACE_ME_REGION* with your default region in the following command to build the docker image using the file *Dockerfile*, which contains Docker instructions. The command tags the Docker image, using the `-t` option, with a specific tag format so that the image can later be pushed to the [Amazon Elastic Container Registry](https://aws.amazon.com/ecr/) service.
+* 도커 명령어가 포함된 *Dockerfile*을 사용하여 도커 이미지를 빌드하기 위해 다음 명령에서 *REPLACE_ME_ACCOUNT_ID*를 계정 ID로, *REPLACE_ME_REGION*를 기본 리전으로 바꿔줍니다. 이 명령은 `-t` 옵션을 사용하여 도커 이미지에 특정 태그 형식으로 태그를 지정하여, 나중에 이미지를 [Amazon Elastic Container Registry](https://aws.amazon.com/ecr/) 서비스로 푸시될 수 있도록 합니다.
 
 ```
 docker build . -t REPLACE_ME_ACCOUNT_ID.dkr.ecr.REPLACE_ME_REGION.amazonaws.com/mythicalmysfits/service:latest
 ```
 
-You will see docker download and install all of the necessary dependency packages that our application needs, and output the tag for the built image.  **Copy the image tag for later reference. Below the example tag shown is: 111111111111.dkr.ecr.us-east-1.amazonaws.com/mythicalmysfits/service:latest**
+도커가 애플리케이션이 필요로하는 모든 필수 종속성 패키지를 다운로드하여 설치하고 빌드 된 이미지의 태그를 출력합니다. **나중에 참조할 수 있도록 태그를 복사합니다. 밑의 예제에서의 태그는 다음과 같습니다: 111111111111.dkr.ecr.us-east-1.amazonaws.com/mythicalmysfits/service:latest**
 
 ```
 Successfully built 8bxxxxxxxxab
 Successfully tagged 111111111111.dkr.ecr.us-east-1.amazonaws.com/mythicalmysfits/service:latest
 ```
 
-#### Testing the Service Locally
+#### 로컬에서 서비스 테스트
 
-Let's test our image locally within Cloud9 to make sure everything is operating as expected. Copy the image tag that resulted from the previous command and run the following command to deploy the container “locally” (which is actually within your Cloud9 IDE inside AWS!):
+Cloud9 내에서 이미지를 테스트하여 예상대로 작동하는지 테스트해보겠습니다. 이전 명령에서 생성된 이미지 태그를 복사하고 아래 명령을 실행하여 컨테이너를 로컬에 배포합니다 (정확히는 AWS내의 Cloud9 IDE에서 입니다):
 
 ```
 docker run -p 8080:8080 REPLACE_ME_WITH_DOCKER_IMAGE_TAG
 ```
 
-As a result you will see docker reporting that your container is up and running locally:
+컨테이너가 로컬에서 작동중인걸 확인할 수 있습니다:
 
 ```
  * Running on http://0.0.0.0:8080/ (Press CTRL+C to quit)
 ```
 
-To test our service with a local request, we're going to open up the built-in web browser within the Cloud9 IDE that can be used to preview applications that are running on the IDE instance.  To open the preview web browser, select **Preview > Preview Running Application** in the Cloud9 menu bar:
+로컬에서 서비스를 테스트해보기 위해 IDE 인스턴스에서 실행중인 애플리케이션을 미리 볼 수 있는 Cloud9 IDE에 내장된 웹브라우저를 열겠습니다. 미리보기 웹 브라우저를 열기위해 Cloud9의 메뉴바에서 **Preview > Preview Running Application**를 선택합니다:
 
 ![preview-menu](/images/module-2/preview-menu.png)
 
-This will open another panel in the IDE where the web browser will be available.  Append /mysfits to the end of the URI in the address bar of the preview browser in the new panel and hit enter:
+IDE에서 다른 패널이 열리고 웹 브라우저를 볼 수 있을 것입니다. 미리보기 웹 브라우저의 주소 표시 줄의 URI 끝에 /mysfits 를 추가하고 엔터를 누릅니다:
 
 ![preview-menu](/images/module-2/address-bar.png)
 
-If successful you will see a response from the service that returns the JSON document stored at `~/environment/workshop/source/module-2/app/service/mysfits-response.json`
+문제없이 동작하면 `~/environment/workshop/source/module-2/app/service/mysfits-response.json`에 저장된 JSON 문서를 반환하는 응답을 볼 수 있습니다.
 
-When done testing the service you can stop it by pressing CTRL-c on PC or Mac.
+서비스 테스트가 완료되면 PC 또는 Mac에서 CTRL-c를 눌러 서비스를 중지할 수 있습니다.
 
-#### Create an Amazon Elastic Container Registry (ECR) repository
+#### Amazon Elastic Container Registry (ECR) 리포지토리 생성
 
-With a successful test of our service locally, we're ready to create a container image repository in [Amazon Elastic Container Registry](https://aws.amazon.com/ecr/) (Amazon ECR) and push our image into it.  In order to create the registry using CDK, let's create a new file within the `lib` folder, this time called `ecr-stack.ts`.  
+서비스를 로컬에서 성공적으로 테스트하였다면 [Amazon Elastic Container Registry](https://aws.amazon.com/ecr/) (Amazon ECR)에 컨테이너 이미지 리포지토리를 생성하고 이미지를 푸시할 준비가 되었습니다. CDK를 사용하여 레지스트리를 만들기 위해 `lib` 폴더에 `ecr-stack.ts` 이라는 새 파일을 생성합니다:
+
 ```sh
 cd ~/environment/workshop/cdk
 touch lib/ecr-stack.ts
 ```
 
-And again, as before, define the skeleton structure of a CDK Stack.
+이전과 마찬가지로 CDK 스택의 스켈레톤 구조를 정의합니다:
 
 ```typescript
 import cdk = require('@aws-cdk/core');
@@ -217,7 +218,7 @@ export class EcrStack extends cdk.Stack {
 }
 ```
 
-Then, add the ECRStack to our CDK application definition in `bin/cdk.ts`, as we have done before.  When done, your `bin/cdk.ts` should look like this;
+그런 다음 이전에 한 것처럼 ECRStack을 `bin/cdk.ts`의 CDK 애플리케이션 정의에 추가합니다. 완료되면 `bin/cdk.ts`는 다음처럼 보여야 합니다:
 
 ```typescript
 #!/usr/bin/env node
@@ -234,13 +235,13 @@ const networkStack = new NetworkStack(app, "MythicalMysfits-Network");
 const ecrStack = new EcrStack(app, "MythicalMysfits-ECR");
 ```
 
-Next, we need to install the CDK NPM packages for Amazon ECR:
+다음으로 Amazon ECR CDK NPM 패키지를 설치해야합니다:
 
 ```sh
-npm install --save-dev @aws-cdk/aws-ecr@1.9.0
+npm install --save-dev @aws-cdk/aws-ecr@1.15.0
 ```
 
-Then we add the definition of our ECR repository to the EcrStack as follows:
+그런 다음 다음과 같이 ECR 리포지토리 정의를 EcrStack에 추가합니다:
 
 ```typescript
 import ecr = require("@aws-cdk/aws-ecr");
@@ -257,56 +258,56 @@ export class EcrStack extends cdk.Stack {
 }
 ```
 
-> **Note:** We are assigning the instance of our `ecr.Repository` to a readonly property so that it may be referenced by other stacks.
+> **참고:** `ecr.Repository`의 인스턴스를 다른 스택에서 참조할 수 있도록 읽기전용 속성을 할당합니다.
 
-Now, deploy your ECR stack using the following command:
+이제 다음 명령어로 ECR 스택을 배포합니다:
 
 ```sh
 npm run build
 cdk deploy MythicalMysfits-ECR
 ```
 
-In your browser, go to the ECR Dashboard and verify you can see the ECR repository you just created in the list.
+브라우저에서 ECR 대시보드로 이동하여 방금 생성한 ECR 리포지토리가 목록에있는지 확인합니다.
 
-#### Pushing the Docker Image to Amazon ECR
+#### 도커 이미지를 Amazon ECR에 푸시
 
-In order to push container images into our new repository, we will need to obtain authentication credentials for our Docker client to the repository.  Run the following command, which will return a login command to retrieve credentials for our Docker client and then automatically execute it (include the full command including the $ below). 'Login Succeeded' will be reported if the command is successful.
+컨테이너 이미지를 새 리포지토리에 푸시하기위해서는 도커 클라이언트를 위한 인증 자격증명을 획득해야합니다. 아래 명령을 실행하면 도커 클라이언트를 위한 자격증명을 획득하는 로그인 명령을 보여주며, 그 명령을 자동으로 실행해줍니다 (명령은 $를 포함합니다). 문제 없이 명령이 수행되면 'Login Succeeded'를 볼 수 있습니다:
 
 ```
 $(aws ecr get-login --no-include-email)
 ```
 
-Next, push the image you created to the ECR repository using the copied tag from above. Using this command, docker will push your image and all the images it depends on to Amazon ECR:
+그런 다음, 위에서 복사한 태그를 사용하여 ECR 리포지토리에 이미지를 푸시합니다. 아래 명령을 사용하면 도커는 생성한 이미지와 함께 연관된 모든 이미지를 Amazon ECR에 푸시할 것 입니다:
 
 ```
 docker push REPLACE_ME_WITH_DOCKER_IMAGE_TAG
 ```
 
-Run the following command to see your newly pushed docker image stored inside the ECR repository:
+ECR 리포지토리에 저장된 직접 푸시한 이미지를 보기 위해 아래 명령을 실행합니다:
 
 ```
 aws ecr describe-images --repository-name mythicalmysfits/service
 ```
 
-### Create an Amazon ECS Service with AWS Fargate
+### AWS Fargate와 Amazon ECS Service 생성
 
-Now,  we have an image available in ECR that we can deploy to a service hosted on Amazon ECS using AWS Fargate.  The same service you tested locally via the terminal in Cloud9 as part of the last module will now be deployed in the cloud and publicly available behind a Network Load Balancer.  
+이제 ECR에 이미지가 저장되었으며, AWS Fargate를 사용하여 Amazon ECS에서 호스팅되는 서비스에 배포할 수 있습니다. 마지막 모듈의 일부로 Cloud9의 터미널을 통해 로컬에서 테스트한 동일한 서비스가 클라우드로 배포되고 Network Load Balancer를 통해 퍼블릭하게 접근할 수 있도록 해보겠습니다.
 
-First, we will create a **Cluster** in **Amazon Elastic Container Service (ECS)**. This represents the cluster of “servers” that your service containers will be deployed to.  Servers is in "quotations" because you will be using **AWS Fargate**. Fargate allows you to specify that your containers be deployed to a cluster without having to actually provision or manage any servers yourself.
+먼저 **Amazon Elastic Container Service (ECS)**에서 **Cluster**를 생성합니다. **Cluster**는 서비스 컨테이너가 배포될 "서버" 클러스터를 나타냅니다. 서버가 "인용문" 내에 있는 이유는 **AWS Fargate**를 사용하기 때문입니다. Fargate를 사용하면 서버를 실제로 프로비저닝하거나 관리할 필요 없이 컨테이너를 클러스터에 배포할 수 있습니다.
 
-Now, let's define our ECS instance.  But first, we need to install the CDK NPM packages for AWS ECS, doing so like below:
+이제 ECS 인스턴스를 정의합니다. 정의하기 이전에 아래 명령으로 AWS ECS CDK NPM 패키지를 설치합니다:
 
 ```sh
-npm install --save-dev @aws-cdk/aws-ecs@1.9.0 @aws-cdk/aws-ecs-patterns@1.9.0
+npm install --save-dev @aws-cdk/aws-ecs@1.15.0 @aws-cdk/aws-ecs-patterns@1.15.0
 ```
 
-As before, let's create a new file within the `lib` folder, this time called `ecs-stack.ts`.  
+이전과 마찬가지로 `lib` 폴더에 `ecs-stack.ts`이라는 파일을 생성합니다:
 
 ```sh
 touch lib/ecs-stack.ts
 ```
 
-Define the skeleton structure of a CDK Stack.
+CDK 스택의 스켈레톤 구조를 정의합니다:
 
 ```typescript
 import cdk = require('@aws-cdk/core');
@@ -320,16 +321,16 @@ export class EcsStack extends cdk.Stack {
 }
 ```
 
-This time, the stack we are creating depends on two previous stacks that we have created.  The recommended approach for importing dependencies and properties into a stack is via a properties construct.  Let's define that now.  
+우리가 생성중인 `EcsStack` 스택은 이전에 생성한 두개의 스택과 종속성을 가집니다. 종속성과 속성을 스택으로 가져오는 방법으로 속성 인터페이스 사용이 권장됩니다. 속성 인터페이스를 정의해보겠습니다.
 
-Above your EcsStack definition, import the following modules:
+`EcsStack` 정의 위에, 다음 모듈을 import 합니다:
 
 ```typescript
 import ec2 = require('@aws-cdk/aws-ec2');
 import ecr = require('@aws-cdk/aws-ecr');
 ```
 
-And define the following properties object.
+다음 속성 객체를 정의합니다:
 
 ```typescript
 interface EcsStackProps extends cdk.StackProps {
@@ -338,13 +339,13 @@ interface EcsStackProps extends cdk.StackProps {
 }
 ```
 
-Now change the constructor of your EcsStack to require your properties object.
+정의한 속성 객체를 EcsStack의 생성자에서 인자로 받도록 합니다:
 
 ```typescript
   constructor(scope: cdk.Construct, id: string, props: EcsStackProps) {
 ```
 
-Import the remaining AWS CDK modules that we will require within the ECS stack.
+EcsStack에서 필요한 나머지 AWS CDK 모듈을 import 합니다:
 
 ```typescript
 import ecs = require("@aws-cdk/aws-ecs");
@@ -352,7 +353,7 @@ import ecsPatterns = require("@aws-cdk/aws-ecs-patterns");
 import iam = require("@aws-cdk/aws-iam");
 ```
 
-Be sure to define two properties at the top of your EcsStack that expose the ecsCluster and ecsService for other stacks to utilise later in the workshop.
+이후 워크샵에서 생성할 다른 스택에서 사용될 수 있도록 ecsCluster와 ecsService를 노출(expose)해야 합니다. 이를 위해 EcsStack 상단에 두개의 속성을 정의합니다:
 
 ```typescript
 export class EcsStack extends cdk.Stack {
@@ -363,7 +364,7 @@ export class EcsStack extends cdk.Stack {
     super(scope, id);
 ```
 
-Now we define our ECS Cluster object.
+ECS Cluster 객체를 정의합니다:
 
 ```typescript
 this.ecsCluster = new ecs.Cluster(this, "Cluster", {
@@ -373,7 +374,7 @@ this.ecsCluster = new ecs.Cluster(this, "Cluster", {
 this.ecsCluster.connections.allowFromAnyIpv4(ec2.Port.tcp(8080));
 ```
 
-Notice how we reference the VPC (`props.vpc`) defined in the `EcsStackProps`.  [AWS CDK](https://aws.amazon.com/cdk/) will automatically create a reference here between the CloudFormation objects.  Also notice that we assign the instance of the `ecs.Cluster` created to a local property so that it can be referenced by this and other stacks.
+`EcsStackProps` 속성에 정의된 VPC (`props.vpc`)를 어떻게 참조하는지 살펴 볼 필요가 있습니다. [AWS CDK](https://aws.amazon.com/cdk/)는 CloudFormation 객체간에 자동으로 참조를 생성합니다. 또 생성된 `ecs.Cluster`의 인스턴스를 로컬 속성에 할당하여 해당 스택은 물론 다른 스택에서 참조될 수 있도록 하는 부분도 참고하시기 바랍니다:
 
 ```typescript
 this.ecsService = new ecsPatterns.NetworkLoadBalancedFargateService(this, "Service", {
@@ -384,9 +385,9 @@ this.ecsService = new ecsPatterns.NetworkLoadBalancedFargateService(this, "Servi
 this.ecsService.service.connections.allowFrom(ec2.Peer.ipv4(props.vpc.vpcCidrBlock),ec2.Port.tcp(8080));
 ```
 
-Notice here the definition of container ports and the customisation of the EC2 SecurityGroups rules created by AWS CDK to limit permitted requests to the CIDR block of the VPC we created.
+컨테이너 포트의 정의와 AWS CDK에 의해 생성된 EC2 SecurityGroups 규칙을 수정하여 우리가 생성한 VPC의 CIDR 블록에서의 요청만 허가하도록 제한하는 부분을 확인하시기 바랍니다.
 
-Next we will add some additional IAM Policy Statements to the Execution and Task Roles.
+다음으로 추가 IAM 정책 Statements를 실행(Execution)과 작업 역할(Task Roles)에 추가합니다:
 
 ```typescript
 const taskDefinitionPolicy = new iam.PolicyStatement();
@@ -440,7 +441,7 @@ this.ecsService.service.taskDefinition.addToTaskRolePolicy(
 );
 ```
 
-Then, add the EcsStack to our CDK application definition in `bin/cdk.ts`, as we have done before.  When done, your `bin/cdk.ts` should look like this;
+그런 후 이전과 마찬가지로 EcsStack을 `bin/cdk.ts`의 CDK 애플리케이션 정의에 추가합니다. 완료 후 `bin/cdk.ts`는 다음처럼 보여야 합니다:
 
 ```typescript
 #!/usr/bin/env node
@@ -462,87 +463,97 @@ const ecsStack = new EcsStack(app, "MythicalMysfits-ECS", {
 });
 ```
 
-Make sure your CDK application compiles without error (by either running `npm run build` or `npm run watch`) and deploy your application so far to your environment.
+CDK 애플리케이션이 에러 없이 컴파일되는지 확인하고 (`npm run build` 또는 `npm run watch` 명령을 사용) 환경에 배포합니다:
+
+> **참고:** 이전에 배포했던 *MythicalMysfits-Network* 스택이 배포 완료된 뒤에 배포를 진행하셔야 정상적으로 구성됩니다.
 
 ```sh
 npm run build
 ```
 
-And now deploy the ECS stack:
+> **참고:** ECS 사용이 처음일 경우 아래 명령을 꼭 먼저 실행해야 합니다.
+
+```sh
+aws iam create-service-linked-role --aws-service-name ecs.amazonaws.com
+```
+
+ECS 스택을 배포합니다:
 
 
 ```sh
 cdk deploy MythicalMysfits-ECS
 ```
 
-You will be prompted with a messages such as `Do you wish to deploy these changes (y/n)?` to which you should respond by typing `y`
+`Do you wish to deploy these changes (y/n)?`와 같은 메시지가 표시되면 `y`를 입력합니다.
 
-After your service is created, ECS will provision a new task that's running the container you've pushed to ECR and register it to the created NLB.  
+서비스가 생성된 후 ECS는 ECR로 푸시한 컨테이너를 실행하는 새 작업을 프로비저닝하고 생성된 NLB에 등록합니다.
 
-#### Test the Service
+#### 서비스 테스트
 
-Use the NLB DNS name that was printed as the output of the previous command and send a request to it using your browser of choice. Try sending a request to the mysfits resource using the AWS CLI command:
+브라우저를 통해 이전 작업 완료 후 출력되는 NLB DNS에 접속하여 작동하는지 확인합니다. CURL 명령을 사용하여 mysfits 리소스에 요청을 보내봅니다:
 
 ```sh
 curl http://<replace-with-your-nlb-address>/mysfits
 ```
 
-A response showing the same JSON response we received earlier when testing the docker container locally in our browser means your Python Web API is up and running on AWS Fargate.
+이전에 도커 컨테이너를 로컬에서 테스트할 때 본 JSON 응답과 동일한 응답을 볼 수 있으며, 이를통해 Python 웹 API가 AWS Fargate에서 정상적으로 동작하고 있다는 걸 확인할 수 있습니다.
 
-> **Note:** This Network Load Balancer only supports HTTP (http://) requests since no SSL/TLS certificates are installed on it. For this tutorial, be sure to submit requests using http:// only, https:// requests will not work properly.
+> **참고:** 최초 접속 시 시간이 소요될 수 있습니다.
 
-### Update Mythical Mysfits to Call the NLB
+> **참고:** Network Load Balancer는 SSL/TLS 인증서가 설치되어 있지 않으므로 HTTP (http://) 요청만 지원합니다. 이 워크샵에서는 http:// 으로만 요청을 보내야 합니다. https:// 요청은 정상적으로 동작하지 않을 것입니다.
 
-#### Replace the API Endpoint
-Next, we need to integrate our website with your new API backend instead of using the hard coded data that we previously uploaded to S3. Copy the web application code from the `workshop/source/module-2/web` directory:
+### 신비한 미스핏츠가 NLB를 호출하도록 변경
+
+#### API 엔드포인트 수정
+다음으로, 웹사이트가 이전에 S3에 업로드한 하드 코딩된 데이터를 사용하는 대신 새로운 API 백엔드와 통합해야 합니다. `workshop/source/module-2/web` 디렉토리에서 웹 애플리케이션 코드를 복사합니다:
 
 ```sh
 cp -r ~/environment/workshop/source/module-2/web/* ~/environment/workshop/web
 ```
 
-You'll need to update the following file to use the same NLB URL for API calls (do not include the /mysfits path): `workshop/web/index.html`. Open the file in Cloud9 and replace the highlighted area below between the quotes with the NLB URL:
+API 호출에 동일한 NLB URL을 사용하기 위해 `workshop/web/index.html` 파일을 업데이트 합니다 (/mysfits 경로를 포함하지 마세요). Cloud9에서 파일을 열고 아래 ' ' 안에 하이라이트된 부분에 NLB URL을 입력합니다:
 
 ![before replace](/images/module-2/before-replace.png)
 
-After pasting, the line should look similar to below:
+복사한 NLB URL을 붙여넣으면 아래와 같이 됩니다:
 
 ![after replace](/images/module-2/after-replace.png)
 
-#### Update the Mythical Mysfits website
-To update your S3 hosted website, deploy the `MythicalMysfits-Website` stack:
+#### 신비한 미스핏츠 웹사이트 업데이트
+S3에서 호스팅되는 웹사이트를 업데이트하기 위해 `MythicalMysfits-Website` 스택을 배포합니다:
 
 ```sh
 npm run build
 cdk deploy MythicalMysfits-Website
 ```
 
-Open your website using the same URL used at the end of Module 1 in order to see your new Mythical Mysfits website, which is retrieving JSON data from your Flask API running within a docker container deployed to AWS Fargate!
+업데이트된 신비한 미스핏츠 웹사이트를 확인하기 위해 모듈 1 마지막에 출력하게끔 한 CloudFront URL을 사용하여 웹사이트에 접속합니다 (HTTP으로 접속하여야 합니다). AWS Fargate에 배포된 도커 컨테이너에서 동작하는 Flask API로부터 JSON 데이터를 받습니다.
 
 
-## Module 2b: Automating Deployments using AWS Code Services
+## 모듈 2b: AWS Code 서비스를 사용한 배포 자동화
 
 ![Architecture](/images/module-2/architecture-module-2b.png)
 
-Now that you have a service up and running, you may think of code changes that you'd like to make to your Flask service.  It would be a bottleneck for your development speed if you had to go through all of the same steps above every time you wanted to deploy a new feature to your service. That's where Continuous Integration and Continuous Delivery or CI/CD come in!
+이제 서비스가 시작되어 동작중입니다. 서비스를 운영하며 Flask 서비스의 코드를 변경해야하는 일은 자주 발생하는 작업입니다. 서비스에 새로운 기능을 배포할 때마다 앞선 모든 과정을 반복하는건 개발 속도를 느리게 만드는 병목이 될 수 있습니다. 이를 해결하기 위해 지속적 통합 및 지속적 전달, 또는 CI/CD라 불리우는 기술이 등장합니다!
 
-In this section, you will create a fully managed CI/CD stack that will automatically deliver all of the code changes that you make to your code base to the service you created during the last section.
+이번 섹션에서는 코드베이스에 대한 모든 코드 변경 사항을 마지막 섹션에서 만든 서비스에 자동으로 전달하는 완전 관리되는 CI/CD 스택을 만들어봅니다.
 
-### Create a CodeCommit repository for our backend service
+### 백엔드 서비스를 위한 CodeCommit 리포지토리 생성
 
-First, we need to install the CDK NPM packages for AWS CodeCommit:
+먼저 AWS CodeCommit CDK NPM 패키지를 설치합니다:
 
 ```sh
 cd ~/environment/workshop/cdk
-npm install --save-dev @aws-cdk/aws-codecommit@1.9.0
+npm install --save-dev @aws-cdk/aws-codecommit@1.15.0
 ```
 
-As before, let's create a new file within the `lib` folder, this time called `cicd-stack.ts`.  
+이전처럼 `lib` 폴더에 `cicd-stack.ts` 파일을 생성합니다:
 
 ```sh
 touch lib/cicd-stack.ts
 ```
 
-Define the skeleton structure of a CDK Stack.
+CDK 스택의 스켈레톤 구조를 정의합니다:
 
 ```typescript
 import cdk = require('@aws-cdk/core');
@@ -556,16 +567,16 @@ export class CiCdStack extends cdk.Stack {
 }
 ```
 
-The stack we are creating depends on two previous stacks that we have created.  The recommended approach for importing dependencies and properties into a stack is via a properties construct.  Let's define that now.  
+현재 만들고자하는 스택은 이전에 생성한 2개의 스택을 활용합니다. 이런 종속성과 속성을 가져오는 방법으로 속성 구문을 사용하는게 좋습니다. 정의해보겠습니다.
 
-Above your CiCdStack definition, import the following modules:
+CiCdStack정의 위에 다음 모듈을 import 합니다:
 
 ```typescript
 import ecr = require("@aws-cdk/aws-ecr");
 import ecs = require("@aws-cdk/aws-ecs");
 ```
 
-And define the following properties object.
+다음 속성 객체를 정의합니다:
 
 ```typescript
 interface CiCdStackProps extends cdk.StackProps {
@@ -574,13 +585,13 @@ interface CiCdStackProps extends cdk.StackProps {
 }
 ```
 
-Now change the constructor of your CiCdStack to require your properties object.
+CiCdStack 생성자를 변경하여 정의한 속성 객체를 입력 받도록 합니다:
 
 ```typescript
   constructor(scope: cdk.Construct, id: string, props: CiCdStackProps) {
 ```
 
-Update the references in the `bin/cdk.ts` file, write/copy the following code:
+`bin/cdk.ts` 파일에 레퍼런스를 업데이트합니다. 다음 코드를 작성합니다:
 
 ```typescript
 #!/usr/bin/env node
@@ -607,15 +618,15 @@ new CiCdStack(app, "MythicalMysfits-CICD", {
 });
 ```
 
-Now, let's add an import statement into the `cicd-stack.ts` file:
+이제 `cicd-stack.ts` 파일에 import 문을 추가합니다:
 
 ```typescript
 import codecommit = require('@aws-cdk/aws-codecommit');
 ```
 
-Let's add the definition for our AWS CodeCommit repository. The AWS CDK consists of a comprehensive array of high level abstractions that both simplify the implementation of your CloudFormation templates as well as providing you with granular control over the resources you generate.
+AWS CodeCommit 리포지토리를 위한 정의를 추가해보겠습니다. AWS CDK는 CloudFormation 템플릿의 구현을 단순화하고 생성하려는 리소스를 세부적으로 제어할 수 있는 고수준 추상화의 종합적인 묶음들로 구성됩니다.
 
-The AWS CodeCommit repositories are defined by using the `Repository` construct as follows:
+AWS CodeCommit 리포지토리는 아래와 같이 `Repository` 컨스트럭츠를 사용하여 정의할 수 있습니다:
 
 ```typescript
 new codecommit.Repository(this, 'Repository' ,{
@@ -624,7 +635,7 @@ new codecommit.Repository(this, 'Repository' ,{
 });
 ```
 
-Let's define the CodeCommit repository we need for our Website. In the `cicd-stack.ts` write/copy the following code:
+웹사이트를 위한 CodeCommit 리포지토리를 정의해보겠습니다. `cicd-stack.ts` 파일에 아래 코드를 작성합니다:
 
 ```typescript
 const backendRepository = new codecommit.Repository(this, "BackendRepository", {
@@ -632,7 +643,7 @@ const backendRepository = new codecommit.Repository(this, "BackendRepository", {
 });
 ```
 
-We can have the generated CloudFormation template provide the clone urls for the generated CodeCommit respository by defining custom output properties defining `cdk.CfnOutput` constructs. Declare `cdk.CfnOutput` both for the HTTP and SSH clone URLs for our repositoriy. Once done, your file should look something list the code block below.
+생성된 CloudFormation 템플릿으로 `cdk.CfnOutput` 컨스트럭츠를 정의하는 사용자 지정 출력(Output) 속성을 정의하여 생성된 CodeCommit 리포지토리의 클론 URL을 제공하도록 할 수 있습니다. 아래와 같이 리포지토리의 HTTP와 SSH 클론 URL을 `cdk.CfnOutput`로 정의합니다:
 
 ```typescript
 import cdk = require("@aws-cdk/core");
@@ -665,15 +676,15 @@ export class CiCdStack extends cdk.Stack {
 }
 ```
 
-### Creating the CI/CD Pipeline
+### CI/CD 파이프라인 생성
 
-Let's install the CDK NPM package for AWS CodeBuild and AWS CodePipeline, execute the following command in the `workshop/cdk` directory:
+AWS CodeBuild와 AWS CodePipeline CDK NPM 패키지를 설치하기 위해 `workshop/cdk` 디렉토리에서 다음 명령을 실행합니다:
 
 ```sh
-npm install --save-dev @aws-cdk/aws-codebuild@1.9.0  @aws-cdk/aws-codepipeline@1.9.0  @aws-cdk/aws-codepipeline-actions@1.9.0
+npm install --save-dev @aws-cdk/aws-codebuild@1.15.0  @aws-cdk/aws-codepipeline@1.15.0  @aws-cdk/aws-codepipeline-actions@1.15.0
 ```
 
-Add the required library import statements to the `cicd-stack.ts` file:
+`cicd-stack.ts` 파일에 필요한 라이브러리를 import 하는 구문을 추가합니다:
 
 ```typescript
 import cdk = require('@aws-cdk/core');
@@ -686,7 +697,7 @@ import actions = require('@aws-cdk/aws-codepipeline-actions');
 import iam = require('@aws-cdk/aws-iam');
 ```
 
-Within the `CiCdStack` file, write/copy the following code to define our CodeBuild project to build our Python Flask web app:
+`CiCdStack` 파일에 CodeBuild 프로젝트를 정의하여 Python Flask 웹앱을 빌드하는 다음 코드를 추가합니다:
 
 ```typescript
 const codebuildProject = new codebuild.PipelineProject(this, "BuildProject", {
@@ -709,7 +720,7 @@ const codebuildProject = new codebuild.PipelineProject(this, "BuildProject", {
 });
 ```
 
-Provide the CodeBuild project with permissions to query the CodeCommit repository:
+CodeCommit 리포지토리를 쿼리할 수 있는 권한을 CodeBuild 프로젝트에 부여합니다:
 
 ```typescript
 const codeBuildPolicy = new iam.PolicyStatement();
@@ -725,13 +736,13 @@ codebuildProject.addToRolePolicy(
 );
 ```
 
-Add permissions for the CodeBuild project to pull and push images to/from the ECR repository:
+CodeBuild 프로젝트에 ECR 리포지토리에 이미지를 푸시하고, 가져오는 권한을 추가합니다:
 
 ```typescript
 props.ecrRepository.grantPullPush(codebuildProject.grantPrincipal);
 ```
 
-Now, let's define the CodePipeline Source action which specifies where to obtain the web app source from, in our case our CodeCommit repository:
+이제 웹 앱 소스를 어디에서 가져올지 지정하는 CodePipeline Source 액션을 정의합니다. 여기서는 CodeCommit 리포지토리를 사용합니다:
 
 ```typescript
 const sourceOutput = new codepipeline.Artifact();
@@ -744,7 +755,7 @@ const sourceAction = new actions.CodeCommitSourceAction({
 });
 ```
 
-Define the CodePipeline Build action that uses the CodeBuild project we created earlier to build the Docker image with our Flask web app:
+앞에서 Flask 웹 앱의 도커 이미지를 빌드하기 위해 생성한 CodeBuild 프로젝트를 사용하는 CodePipeline Build 액션을 정의합니다:
 
 ```typescript
 const buildOutput = new codepipeline.Artifact();
@@ -758,7 +769,7 @@ const buildAction = new actions.CodeBuildAction({
 });
 ```
 
-Now, define the ECS deployment action to tell CodePipeline how to deploy the output of the BuildAction:
+CodePipeline에게 BuildAction의 결과를 어떻게 배포할지 제어할 ECS 배포 액션을 정의합니다:
 
 ```typescript
 const deployAction = new actions.EcsDeployAction({
@@ -768,7 +779,7 @@ const deployAction = new actions.EcsDeployAction({
 });
 ```
 
-Finally define the CodePipeline pipeline and stich all the stages/actions together:
+마지막으로 CodePipeline 파이프라인과 모든 스테이지/액션을 정의합니다:
 
 ```typescript
 const pipeline = new codepipeline.Pipeline(this, "Pipeline", {
@@ -788,7 +799,7 @@ pipeline.addStage({
 });
 ```
 
-Your `cicd-stack.ts` file should now look like this:
+`cicd-stack.ts` 파일은 아래같이 보일 것입니다:
 
 ```typescript
 import cdk = require("@aws-cdk/core");
@@ -895,26 +906,26 @@ export class CiCdStack extends cdk.Stack {
 }
 ```
 
-### Deploy the Pipeline
+### Pipeline 배포
 
-Make sure our TypeScript has been compiled.
+TypeScript를 컴파일 합니다:
 
 ```sh
 npm run build
 ```
 
-And now deploy the CICD stack:
+CICD 스택을 배포합니다:
 
 ```sh
 cdk deploy MythicalMysfits-CICD
 ```
 
-### Test the CI/CD Pipeline
+### CI/CD 파이프라인 테스트
 
-#### Using Git with AWS CodeCommit
-To test out the new pipeline, we need to configure git within your Cloud9 IDE and integrate it with your CodeCommit repository.
+#### AWS CodeCommit과 Git 사용
+파이프라인을 테스트하기 위해 Cloud9 IDE에서 git을 설정하고 CodeCommit 리포지토리와 통합해야합니다.
 
-AWS CodeCommit provides a credential helper for git that we will use to make integration easy.  Run the following commands in sequence the terminal to configure git to be used with AWS CodeCommit (neither will report any response if successful):
+AWS CodeCommit은 통합을 쉽게하기 위해 git 관련 자격 증명 헬퍼를 제공합니다. 터미널에서 다음 명령을 순서대로 실행하여 git을 설정합니다 (명령은 별다른 결과를 출력하지 않습니다):
 
 ```sh
 git config --global user.name "REPLACE_ME_WITH_YOUR_NAME"
@@ -923,35 +934,35 @@ git config --global credential.helper '!aws codecommit credential-helper $@'
 git config --global credential.UseHttpPath true
 ```
 
-Next change directories in your IDE to the environment directory using the terminal:
+IDE의 터미널에서 environment 디렉토리로 이동합니다:
 
 ```sh
 cd ~/environment/
 ```
 
-Now, we are ready to clone our repository using the following terminal command:
+이제 다음 터미널 명령을 사용하여 리포지토리를 클론합니다:
 
 ```sh
 git clone https://git-codecommit.REPLACE_REGION.amazonaws.com/v1/repos/MythicalMysfits-BackendRepository
 ```
 
-This will tell us that our repository is empty!  Let's fix that by copying the application files into our repository directory using the following command:
+클론을 하면 리포지토리가 비어있음을 확인할 수 있습니다. 다음 명령으로 애플리케이션 파일을 리포지토리 디렉토리에 복사하겠습니다:
 
 ```sh
 cp -r ~/environment/workshop/source/module-2/app/* ~/environment/MythicalMysfits-BackendRepository/
 ```
 
-#### Pushing a Code Change
+#### 코드 변경 푸시
 
-Now the completed service code that we used to create our Fargate service in the previous section is stored in the local repository that we just cloned from AWS CodeCommit.  Let's make a change to the Flask service before committing our changes, to demonstrate that the CI/CD pipeline we've created is working. In Cloud9, open the file stored at `~/environment/MythicalMysfits-BackendRepository/service/mysfits-response.json` and change the age of one of the mysfits to another value and save the file.
+이전 섹션에서 Fargate 서비스를 생성하는데 사용한 완성된 코드는 AWS CodeCommit에서 클론한 로컬 리포지토리에 저장됩니다. Flask 서비스를 변경한 후 변경 사항을 커밋하여 우리가 구성한 CI/CD 파이프라인이 잘 동작하는지 보겠습니다. **Cloud9에서 `~/environment/MythicalMysfits-BackendRepository/service/mysfits-response.json` 파일을 열어 mysfits 중 하나의 나이를 다른 값으로 변경하고 저장합니다**.
 
-After saving the file, change directories to the new repository directory:
+파일을 저장한 후 리포지토리 디렉토리로 이동합니다:
 
 ```sh
 cd ~/environment/MythicalMysfits-BackendRepository/
 ```
 
-Then, run the following git commands to push in your code changes.  
+그리고나서 다음 git 명령으로 코드 변경을 푸시합니다:
 
 ```sh
 git add .
@@ -959,14 +970,14 @@ git commit -m "I changed the age of one of the mysfits."
 git push
 ```
 
-After the change is pushed into the repository, you can open the CodePipeline service in the AWS Console to view your changes as they progress through the CI/CD pipeline. After committing your code change, it will take about 5 to 10 minutes for the changes to be deployed to your live service running in Fargate.  During this time, AWS CodePipeline will orchestrate triggering a pipeline execution when the changes have been checked into your CodeCommit repository, trigger your CodeBuild project to initiate a new build, and retrieve the docker image that was pushed to ECR by CodeBuild and perform an automated ECS [Update Service](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/update-service.html) action to connection drain the existing containers that are running in your service and replace them with the newly built image.  Refresh your Mythical Mysfits website in the browser to see that the changes have taken effect.
+변경 사항을 리포지토리에 푸시한 후 AWS 콘솔의 [CodePipeline 서비스 페이지에서](https://console.aws.amazon.com/codesuite/codepipeline/home/) CI/CD 파이프라인을 통해 변경이 어떻게 진행되는지 확인할 수 있습니다. 코드 변경을 커밋한 후 변경 사항이 Fargate에서 실행되는 라이브 서비스로의 배포는 약 15분이내에 완료될 것 입니다. 이 시간 동안 AWS CodePipeline은 CodeCommit 리포지토리에 변경된 코드가 체크인 되면 파이프라인을 실행하고, CodeBuild 프로젝트가 새로운 빌드를 시작하도록 하며, CodeBuild가 ECR에 푸시한 도커 이미지를 가져와 자동화된 ECS [Update Service](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/update-service.html) 액션을 수행하여 실행중인 컨테이너에 연결된 커넥션을 드레이닝하고, 새 이미지로 교체합니다. 변경 사항이 잘 적용되었는지 확인하기 위해 브라우저에서 신비한 미스핏츠 웹사이트에 다시 접속해봅니다.
 
-You can view the progress of your code change through the CodePipeline console here (no actions needed, just watch the automation in action!):
+CodePipeline 콘솔에서 코드 변경 진행 사항을 확인할 수 있습니다 (별다른 행동없이 콘솔에서 진행 사항을 확인할 수 있습니다):
 [AWS CodePipeline](https://console.aws.amazon.com/codepipeline/home)
 
-This concludes Module 2.
+이것으로 모듈 2를 마치겠습니다.
 
-[Proceed to Module 3](/module-3)
+[모듈 3 진행](/module-3)
 
 
 ## [AWS Developer Center](https://developer.aws)

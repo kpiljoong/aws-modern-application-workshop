@@ -1,15 +1,15 @@
-# Module 6: Tracing Application Requests
+# 모듈 6: 애플리케이션 요청 추적
 
 ![Architecture](/images/module-6/x-ray-arch-diagram.png)
 
-**Time to complete:** 45 minutes
+**완료에 필요한 시간:** 45분
 
 ---
-**Short of time?:** If you are short of time, refer to the completed reference AWS CDK code in `module-6/cdk`
+**시간이 부족한 경우:** `module-6/cdk`에 있는 완전한 레퍼런스 AWS CDK 코드를 참고하세요
 
 ---
 
-**Services used:**
+**사용된 서비스:**
 * [AWS CloudFormation](https://aws.amazon.com/cloudformation/)
 * [AWS X-Ray](https://aws.amazon.com/xray/)
 * [Amazon DynamoDB](https://aws.amazon.com/dynamodb/)
@@ -19,29 +19,31 @@
 * [AWS Lambda](https://aws.amazon.com/lambda/)
 * [AWS CodeCommit](https://aws.amazon.com/codecommit/)
 
-### Overview
-Next, we will show you how to deeply inspect and analyze request behavior on new functionality for the Mythical Mysfits site, using [**AWS X-Ray**](https://aws.amazon.com/xray/).  The new functionality will enable users to contact the Mythical Mysfits staff, via a **Contact Us** button we'll place on the site.  Much of the steps required to create a new microservice to handle receiving user questions mimics activities you've performed earlier in this workshop.
+### 개요
 
-The resources we'll create includes:
-* An **API Gateway API**:  A new microservice will be created that has a single REST resource, `/questions`.  This API will receive the text of a user question and the email address for the user who submitted it.
-* A **DynamoDB Table**: A new DynamoDB table where the user questions will be stored and persisted.  This DynamoDB table will be created with a [**DynamoDB Stream**](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Streams.html) enabled.  The stream will provide a real-time event stream for all of the new questions that are stored within the database so that they can be immediately processed.
-* An **AWS SNS Topic**: AWS SNS allows applications to publish messages and to subscribe to message topics.  We will use a new topic as a way to send notifications to a subscribed email address for a email address.
-* Two **AWS Lambda Functions**: One AWS Lambda function will be used as the service backend for the question API requests. The other AWS Lambda function will receive events from the questions DynamoDB table and publish a message for each of them to the above SNS topic.  When definining these resources, you'll use a Property that indicates `Tracing: Active`.  This means that all invocations of the Lambda function will automatically be traced by **AWS X-Ray**.
-* **IAM Roles** required for each of the above resources and actions.
+다음으로, [**AWS X-Ray**](https://aws.amazon.com/xray/)를 사용하여 신비한 미스핏츠 사이트에 새로운 기능에 대한 요청 동작을 심층적으로 검사하고 분석하는 방법을 보여주겠습니다. 새로운 기능을 통해 사용자는 사이트에 배치할 **Contact Us** 버튼을 통해 신비한 미스핏츠 직원에게 연락할 수 있습니다. 사용자 질문을 받아 처리하기 위한 새로운 마이크로서비스를 만드는데 필요한 많은 단계가 이 워크샵의 초기 단계에서 수행한 방법과 유사합니다.
 
-### Create a new CodeCommit Repository
+우리가 만들 리소스는 다음과 같습니다:
+* **API Gateway API**: 단일 REST 리소스 `/questions`를 갖는 새로운 마이크로서비스를 생성합니다. 이 API는 사용자 질문의 텍스트와 질문을 제출한 사용자의 이메일 주소를 받습니다.
+* **DynamoDB Table**: 사용자 질문이 저장되고 유지될 새로운 DynamoDB 테이블. 이 DynamoDB 테이블은 [**DynamoDB Stream**](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Streams.html)이 활성화되어 생성됩니다. 이 스트림은 즉시 처리할 수 있도록 데이터베이스 내에 저장된 모든 새 질문에 대한 실시간 이벤트 스트림을 제공합니다.
+* **AWS SNS Topic**: AWS SNS를 통해 애플리케이션은 메시지를 게시하고 메시지 주제를 구독할 수 있습니다. 이메일 주소를 구독하는 이메일에 알림을 보내는 방법으로 새로운 주제를 사용합니다.
+* 두개의 **AWS Lambda Functions**: AWS Lambda 함수 하나는 질문 API 요청에 대한 서비스 백엔드로 사용됩니다. 다른 AWS Lambda 함수는 질문 DynamoDB 테이블로부터 이벤트를 받아 각각에 대한 메시지를 위의 SNS 주제에 게시합니다. 이 리소스들을 정의할 때, `Tracing: Active`을 나타내는 속성을 사용합니다. 이는 Lambda 함수의 모든 호출이 자동으로 **AWS X-Ray**에 의해 추적됨을 의미합니다.
+* **IAM Roles**: 위의 각 리소스 및 작업에 필요.
 
-To create the necessary resources using the AWS CDK, create a new file in the `workshop/cdk/lib` folder called `xray-stack.ts`.
+### 새 CodeCommit 리포지토리 생성
+
+AWS CDK를 사용하여 필요한 리소스를 생성하기 위해 `workshop/cdk/lib` 폴더에 `xray-stack.ts`라는 파일을 생성합니다:
 
 ```sh
 cd ~/environment/workshop/cdk
 touch lib/xray-stack.ts
 ```
 
-Within the file you just created, define the skeleton CDK Stack structure as we have done before, this time naming the class `XRayStack`:
+방금 생성한 파일 내에서 이전에 한 것처럼 스켈레톤 CDK 스택 구조를 정의합니다. 클래스명은 `XRayStack`로 합니다:
 
 ```typescript
 import cdk = require('@aws-cdk/core');
+
 export class XRayStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id:string) {
     super(scope, id);
@@ -50,13 +52,13 @@ export class XRayStack extends cdk.Stack {
 }
 ```
 
-The AWS CDK npm package for Lambda already includes support for X-Ray tracing. We do need to install the AWS CDK npm packages for SNS and Lambda:
+Lambda 용 AWS CDK NPM 패키지는 X-Ray 추적에 대한 지원이 이미 포함되어 있습니다. SNS와 Lambda 용 AWS CDK NPM 패키지를 설치합니다:
 
 ```sh
-npm install --save-dev @aws-cdk/aws-sns@1.9.0 @aws-cdk/aws-sns-subscriptions@1.9.0 @aws-cdk/aws-lambda-event-sources@1.9.0
+npm install --save-dev @aws-cdk/aws-sns @aws-cdk/aws-sns-subscriptions @aws-cdk/aws-lambda-event-sources
 ```
 
-Define the class imports for the code we will be writing:
+작성할 코드를 위한 라이브러리들을 import 합니다:
 
 ```typescript
 import cdk = require('@aws-cdk/core');
@@ -71,7 +73,7 @@ import sns = require('@aws-cdk/aws-sns');
 import subs = require('@aws-cdk/aws-sns-subscriptions');
 ```
 
-Within the `XRayStack` constructor, add the CodeCommit repository we'll use for the Lambda code we will write:
+`XRayStack` 생성자 내에서 작성할 Lambda 코드에 사용할 CodeCommit 리포지토리를 추가합니다:
 
 ```typescript
 const lambdaRepository = new codecommit.Repository(this, "QuestionsLambdaRepository", {
@@ -89,19 +91,19 @@ new cdk.CfnOutput(this, "questionsRepositoryCloneUrlSsh", {
 });
 ```
 
-Then, add the `XRayStack` to our CDK application definition in `bin/cdk.ts`, when done, your `bin/cdk.ts` file should look like this:
+그런 다음 `XRayStack`를 `bin/cdk.ts`의 CDK 애플리케이션 정의에 추가합니다. 완료 후 `bin/cdk.ts`는 다음처럼 보여야 합니다:
 
 ```typescript
 #!/usr/bin/env node
-
-import cdk = require("@aws-cdk/core");
 import 'source-map-support/register';
+import cdk = require('@aws-cdk/core');
 import { WebApplicationStack } from "../lib/web-application-stack";
 import { NetworkStack } from "../lib/network-stack";
 import { EcrStack } from "../lib/ecr-stack";
 import { EcsStack } from "../lib/ecs-stack";
 import { CiCdStack } from "../lib/cicd-stack";
 import { DynamoDbStack } from '../lib/dynamodb-stack';
+import { CognitoStack } from '../lib/cognito-stack';
 import { APIGatewayStack } from "../lib/apigateway-stack";
 import { KinesisFirehoseStack } from "../lib/kinesis-firehose-stack";
 import { XRayStack } from "../lib/xray-stack";
@@ -122,53 +124,58 @@ const dynamoDbStack = new DynamoDbStack(app, "MythicalMysfits-DynamoDB", {
     vpc: networkStack.vpc,
     fargateService: ecsStack.ecsService.service
 });
+const cognito = new CognitoStack(app,  "MythicalMysfits-Cognito");
 new APIGatewayStack(app, "MythicalMysfits-APIGateway", {
-  fargateService: ecsStack.ecsService
+  userPoolId: cognito.userPool.userPoolId,
+  loadBalancerArn: ecsStack.ecsService.loadBalancer.loadBalancerArn,
+  loadBalancerDnsName: ecsStack.ecsService.loadBalancer.loadBalancerDnsName
 });
 new KinesisFirehoseStack(app, "MythicalMysfits-KinesisFirehose", {
     table: dynamoDbStack.table
 });
 new XRayStack(app, "MythicalMysfits-XRay");
+app.synth();
 ```
 
-We are not yet finished writing the `XRayStack` implementation but let's deploy what we have written so far:
+아직 `XRayStack` 구현 작성이 완료되지 않았지만 현재까지 작성한 것을 배포 해 봅니다:
 
 ```sh
 cdk deploy MythicalMysfits-XRay
 ```
 
-In the output of that command, copy the value for `"Repository Clone Url HTTP"`.  It should be of the form: `https://git-codecommit.REPLACE_ME_REGION.amazonaws.com/v1/repos/MythicalMysfits-QuestionsLambdaRepository`
+명령의 출력에서 `"Repository Clone Url HTTP"` 값을 복사합니다. 해당 값은 `https://git-codecommit.REPLACE_ME_REGION.amazonaws.com/v1/repos/MythicalMysfits-QuestionsLambdaRepository`의 형식이어야합니다.
 
-Next, let's clone that new and empty repository:
+다음으로 비어있는 새로 생성한 리포지토리를 클론합니다:
 
 ```sh
 cd ~/environment/
 git clone REPLACE_ME_WITH_ABOVE_CLONE_URL lambda-questions
 ```
 
-### Copy the Questions Service Code Base
+### 질문 서비스 코드베이스 복사
 
-Now, let's move our working directory into this new repository:
+새로운 리포지토리로 작업 디렉토리를 변경합니다:
+
 ```
 cd ~/environment/lambda-questions/
 ```
 
-Then, copy the module-6 application components into this new repository directory:
+그런 다음 모듈 6 애플리케이션 구성 요소를 새 리포지토리 디렉토리에 복사합니다:
 ```
 cp -r ~/environment/workshop/source/module-6/app/* .
 ```
 
-For this new microservice, we have included all of the packages necessary for the AWS Lambda functions to be deployed and invoked.
+새로운 마이크로서비스를 위해 AWS Lambda 기능을 배포하고 호출하는데 필요한 모든 패키지가 포함되어 있습니다.
 
-### Creating the Questions Service Stack
+### 질문 서비스 스택 생성
 
-Change back into the `cdk` folder:
+`cdk` 폴더로 다시 변경합니다:
 
 ```sh
 cd ~/environment/workshop/cdk
 ```
 
-Back in the `XRayStack` file,  we will now define the Questions microservice infrastructure:
+`XRayStack` 파일로 돌아가서, Question 마이크로서비스 인프라를 정의해보겠습니다:
 
 ```typescript
 const table = new dynamodb.Table(this, "Table", {
@@ -316,56 +323,56 @@ questionsMethod.addMethod('OPTIONS', new apigw.MockIntegration({
   }]
 });
 ```
-> **Note:** Make sure to replace "REPLACE@EMAIL_ADDRESS" in the code above with a valid email address you have access to. This will be the email address that user questions are published to by the SNS topic.
+> **참고:** 위 코드에서 "REPLACE@EMAIL_ADDRESS"를 접근 가능한 유효한 이메일 주소로 바꾸십시오. 이 값이 사용자 질문이 SNS 주제를 통하여 게시될 이메일 주소가 됩니다.
 
-Finally, deploy the CDK Application:
+마지막으로 CDK 애플리케이션을 배포합니다:
 
 ```sh
 cdk deploy MythicalMysfits-XRay
 ```
 
-Note down the API Gateway endpoint, as we will need it in the next step.
+다음 단계에서 필요하므로 API Gateway 엔드포인트를 기록해둡니다.
 
-Next, visit the email address provided and CONFIRM your subscription to the SNS topic:
+다음으로 위에서 입력한 이메일 주소에 전달된 SNS 주제 구독 관련 이메일에서 구독 버튼을 눌러 승인합니다:
 ![SNS Confirm](/images/module-6/confirm-sns.png)
 
-### Update the Website Content and Push the New Site to S3
-With the questions stack up and running, we now need to publish a new version of our Mythical Mysfits frontend.
+### 웹사이트 콘텐츠를 업데이트하고 새 사이트를 S3로 푸시
 
-The new index.html file is included at: `~/environment/workshop/source/module-6/web/index.html`. Copy the new version of the website to the `workshop/web` directory:
+질문 스택이 구성되어 동작하면 신비한 미스핏츠 프론트엔드의 새 버전을 게시해야합니다.
+
+새로운 index.html 파일은 다음에 위치하고 있습니다: `~/environment/workshop/source/module-6/web/index.html`. `workshop/web` 디렉토리에 웹사이트의 새 버전을 복사합니다:
 
 ```sh
 cp -r ~/environment/workshop/source/module-6/web/* ~/environment/workshop/web
 ```
 
-This file contains the same placeholders as module-5 that need to be updated, as well as an additional placeholder for the new questions service endpoint you just created. The `questionsApiEndpoint` value is the API Gateway endpoint you noted down earlier.
+이 파일에는 모듈 5와 동일한 업데이트가 필요한 플레이스홀더와 새 질문 서비스 엔드포인트를 위한 추가적인 플레이스홀더를 포함하고 있습니다. `questionsApiEndpoint` 값은 앞에서 기록해둔 API Gateway 엔드포인트입니다.
 
-Now, let's update your S3 hosted website and deploy the `MythicalMysfits-Website` stack:
+이제 S3 호스팅 웹사이트를 업데이트하고 `MythicalMysfits-Website` 스택을 배포합니다:
 
 ```sh
-npm run build
 cdk deploy MythicalMysfits-Website
 ```
 
-Now that the new Contact Us functionality is deployed, visit the website and submit a question or two.  If you've confirmed the subscription to SNS in the step above, you'll start to see those questions arrive in your inbox! When you've seen that email arrive, you can move on to explore and analyze the request lifecycle.
+새로운 Contact Us 기능이 배포되었으므로 웹사이트를 방문하고 질문을 제출해봅니다. 위 단계에서 SNS 구독을 승인하였다면, 해당 질문이 편지함에 도착한 것을 볼 수 있을 것입니다! 이메일 도착을 확인한 후, 요청 라이프사이클을 탐색하고 분석하는 단계로 넘어갈 수 있습니다.
 
-### Explore the Questions Services Traces and Requests
+### 질문 서비스 추적 및 요청 탐색
 
-Now, to start seeing the request behavior for this microservice, visit the AWS X-Ray console to explore:
+이제 마이크로서비스에 대한 요청 동작을 확인하기위해, AWS X-Ray 콘솔을 방문하여 탐색해봅니다:
 
 [AWS X-Ray Console](https://console.aws.amazon.com/xray/home)
 
-Upon visiting the X-Ray Console you'll be immediately viewing a **service map**, which shows the dependency relationship between all the components that X-Ray receives **trace segments** for:  
+X-Ray 콘솔을 방문하면 **service map**을 확인할 수 있습니다. 이는 X-Ray가 **trace segments**를 받는 모든 구성 요소 간의 종속성 관계를 표시하는 것입니다:
 
 ![X-Ray Lambda Only](/images/module-6/lambda-only-x-ray.png)
 
-At first, this service map only includes our AWS Lambda functions.  Feel free to explore the X-Ray console to learn more about drilling into the data automatically made visible just by listing the `Tracing: Active` property in the resources you deployed.
+처음에는 이 서비스 맵에 AWS Lambda 함수들만 포함됩니다. X-Ray 콘솔을 탐색하여 배포한 리소스에 `Tracing: Active` 속성을 나열한 것만으로도 자동으로 보여지는 데이터에 대해 자세히 알아볼 수 있습니다.
 
-### Instrument Additional AWS Services with AWS X-Ray
+### AWS X-Ray를 사용하여 추가 AWS 서비스 구성(instrument)
 
-Next, we're going to instrument more of the microservice stack so that all of the service dependencies are included in the service map and recorded trace segments.
+다음으로, 모든 서비스 종속성이 서비스 맵과 기록된 추적 세그먼트에 포함되도록 마이크로서비스 스택을 구성하겠습니다.
 
-First, we will instrument the API Gateway REST API. In the `XRayStack`, modify the API Gateway resource to enable tracing:
+먼저 API Gateway REST API를 구성합니다. `XRayStack` 스택에서, API Gateway 리소스를 수정하여 추적을 활성화합니다:
 
 ```typescript
 const api = new apigw.LambdaRestApi(this, "APIEndpoint", {
@@ -380,71 +387,70 @@ const api = new apigw.LambdaRestApi(this, "APIEndpoint", {
 });
 ```
 
-Then, re-deploy the CDK stack:
+그런 다음 CDK 스택을 다시 배포합니다:
 
 ```sh
 npm run build
 cdk deploy MythicalMysfits-XRay
 ```
 
-Now, submit another question to the Mythical Mysfits website and you'll see that the REST API is also included in the service map!
+신비한 미스핏츠 웹사이트에 다른 질문을 제출하면 REST API가 서비스 맵에도 포함되어 있는걸 확인할 수 있습니다!
 
 ![API Gateway Traced](/images/module-6/api-x-ray.png)
 
-Next, you will use the [AWS X-Ray SDK for Python](https://docs.aws.amazon.com/xray/latest/devguide/xray-sdk-python.html) so that the services being called by the two Lambda functions as part of the questions stack are also represented in the X-Ray service map.  The code has been written already to accomplish this, you just need to uncomment the relevant lines (uncommenting is performed by deleting the preceding `#` in a line of python code).  In the Lambda function code, you will see comments that indicate `#UNCOMMENT_BEFORE_2ND_DEPLOYMENT` or `#UNCOMMENT_BEFORE_3RD_DEPLOYMENT`.  
+다음으로, [AWS X-Ray SDK for Python](https://docs.aws.amazon.com/xray/latest/devguide/xray-sdk-python.html)을 사용하여 질문 스택의 일부로서 2개의 Lambda 함수에 의해 불려지는 서비스들도 X-Ray 서비스 맵에 나타나도록 합니다. 작성된 코드가 이미 있으며, 관련 줄의 주석만 제거하면 됩니다 (주석 제거는 python 코드 앞에 `#`를 삭제하여 수행합니다). Lambda 함수 코드에서 `#UNCOMMENT_BEFORE_2ND_DEPLOYMENT` 또는 `#UNCOMMENT_BEFORE_3RD_DEPLOYMENT`를 나타내는 주석을 볼 수 있을 것입니다.  
 
-You've already completed the first deployment of these functions using the AWS CDK, so this will be your **2nd Deployment**.  Uncomment each of the lines indicated below all cases of `UNCOMMENT_BEFORE_2ND_DEPLOYMENT` in the following files, and save the files after making the required changes:
+AWS CDK를 사용하여 이러한 기능의 첫번째 배포를 이미 완료했으므로, 이번이 **2번째 배포**가 됩니다. 다음 파일에서 `UNCOMMENT_BEFORE_2ND_DEPLOYMENT`가 표시된 모든 부분에 주석을 제거하고 필요한 변경을 수행한 후 파일을 저장합니다:
 * `~/environment/lambda-questions/PostQuestionsService/mysfitsPostQuestion.py`
 * `~/environment/lambda-questions/ProcessQuestionsStream/mysfitsProcessStream.py`
 
-> **Note:** The changes you've uncommented enable the AWS X-Ray SDK to instrument the AWS Python SDK (boto3) to capture tracing data and record it within the Lambda service anytime an AWS API call is made. Those few lines of code are all that's required in order for X-Ray to automatically trace your AWS service map throughout a serverless application using AWS Lambda!
+> **참고:** 주석 처리를 해제하면 AWS X-Ray SDK가 AWS Python SDK (boto3)를 구성하여 추적 데이터를 캡처하고 Lambda 서비스 내에서 기록하게 합니다. X-Ray가 AWS Lambda를 사용하는 서버리스 애플리케이션에서 자동으로 AWS 서비스 맵을 추적하는데는 몇 줄의 코드만 있으면 됩니다!
 
-With those changes made, deploy an update to the Lambda function code by issuing the following two commands:
+이러한 변경을 수행한 후, 다음 두 명령을 실행하여 Lambda 함수 코드에 대한 업데이트를 배포합니다:
 
 ```sh
 npm run build
 cdk deploy MythicalMysfits-XRay
 ```
 
-Once that command completes, submit an additional question to the Mythical Mysfits website and take a look at the X-Ray console again. Now you're able to trace how Lambda is interacting with DynamoDB as well as SNS!
+명령이 완료되면 신비한 미스핏츠 웹사이트에서 추가 질문을 제출하고, X-Ray 콘솔을 다시 확인합니다. 이제 Lambda가 DynamoDB 뿐만 아니라 SNS와 어떻게 상호작용하는지 추적할 수 있습니다!
 
 ![Services X-Ray](/images/module-6/services-x-ray.png)
 
-### Trobleshoot Problems with AWS -X-Ray
+### AWS X-Ray 관련 문제 해결
 
-The final step in this module is to familiarize yourself with using AWS X-Ray to triage problems in your application.  To accomplish this, we're going to by *mysfits* ourselves and have you add some terrible code to your application.  All this code will do is cause your web service to add 5 seconds of latency and throw an exception for randomized requests :) .
+이번 모듈의 마지막 단계는 AWS X-Ray를 사용하여 애플리케이션의 문제를 심사하는데 익숙해지는 것입니다. 이를 위해, 애플리케이션에 끔찍한 코드를 추가하도록 하겠습니다. 이 코드는 하는건 웹서비스에 5초의 대기시간을 추가하고 무작위 요청에 대해 예외를 발생시키는 것입니다 :) .
 
-Go back into the following file and remove the comments indicated by `#UNCOMMENT_BEFORE_3RD_DEPLOYMENT`:  
+다음 파일로 돌아가서 `#UNCOMMENT_BEFORE_3RD_DEPLOYMENT`로 표시된 주석을 제거합니다:  
 * `~/environment/lambda-questions/PostQuestionsService/mysfitsPostQuestion.py`
 
-This is the code that will cause your Lambda function to throw an exception.  Also, you can note above the `hangingException()` function that we're using out-of-the-box functionality of the **AWS X-Ray SDK** to record a trace subsegment each time that function is called.  Now when you drill into the Trace for a particular request, you'll be able to see that all requests are stuck sitting within this function for at least 5 seconds before they throw the exception.
+주석을 제거한 부분이 Lambda 함수가 예외를 발생시키게 하는 코드입니다. 또한, `hangingException()` 함수 위에서 **AWS X-Ray SDK**의 기본 기능을 사용하여 함수가 호출될 때마다 추적 세그먼트를 기록하고 있음을 알 수 있습니다. 이제 특정 요청에 대한 추적을 자세히 살펴보면, 예외가 발생하기 전에 모든 요청이 함수 내에서 적어도 5초 동안 멈춰있는 걸 확인할 수 있습니다.
 
-Using this functionality within your own applications will help you identify similar latency bottlenecks within your code, or places where exceptions are being thrown.
+운영하는 애플리케이션 내에서 이 기능을 사용하면 코드 내의 위와 비슷한 지연 병목현상이나 예외가 발생하는 위치를 식별하는데 도움이 됩니다.
 
-After you make the required code changes and save the `mysfitsPostQuestion.py` file, run the same two commands as before to deploy your changes.  
+필요한 코드를 변경하고 `mysfitsPostQuestion.py` 파일을 저장한 후, 변경 사항을 배포하기 전에 이전과 동일한 두 명령을 실행합니다:
 
 ```sh
 npm run build
 cdk deploy MythicalMysfits-XRay
 ```
 
-After you've issued those two commands, submit another few questions on your Mysfits website.  Some of these questions will fail to show up in your inbox. Because your new and terrible code has thrown an error!
+이 두 명령을 실행한 후, 미스핏츠 웹사이트에서 다른 몇 가지 질문을 제출해보겠습니다. 질문 중 몇개는 이메일 편지함에 나타나지 않을 것이고, 이는 새로운 끔찍한 코드가 오류를 발생시키기 때문입니다!
 
-If you visit the X-Ray console again, you'll notice that the service map for the MysfitPostQuestionsFunction Lambda function has a ring around it that is no longer only Green. That's because Error responses have been generated there.  X-Ray will give you this visual representation of overall service health across all of the instrumented services in your service map:
+X-Ray 콘솔을 다시 방문하면, MysfitPostQuestionsFunction Lambda 함수의 서비스 맵에 더 이상 녹색이 아닌 링이 있는걸 알 수 있습니다. 이는 오류 응답이 생겼기 때문입니다. X-Ray는 서비스맵에있는 모든 구성된 서비스들의 전반적인 서비스 상태를 시각적으로 보여줍니다.
 
 ![X-Ray Errors](/images/module-6/x-ray-errors.png)
 
-If you click on that service within the service map, you'll notice on the right side of the X-Ray console, you have the ability to view the traces that either match the highlighted overall latency shown within the service latency graph and/or the status code you're interested in.  Zoom the latency graph so that the blip around 5 seconds is within the graph and/or select the Error check box and click **View traces**:
+서비스 맵에서 해당 서비스를 클릭하면 X-Ray 콘솔의 오른쪽에 서비스 지연 그래프 내에 보여지는 강조된 전체 지연과 일치하는 트레이스 및/또는 관심 가질만한 응답 코드 볼 수 있습니다. 지연 그래프를 확대하여 5초 주위의 문제가 보여지도록 하거나 Error 체크 박스를 선택하고 **View traces**를 클릭합니다:
 
 ![View Traces](/images/module-6/view-traces.png)
 
-This will take you to the Trace dashboard where you can explore that specific requests lifecycle, see the latency spend on each segment of the service, and view the exception reported and associated stack trace. Click on any of the IDs for the Traces where the response is reported as a 502, then on the subsequent **Trace Details** page, click on the **hangingException** to view that specific subsegment where the exception was thrown in our code:
+그러면 추적 대시보드로 이동되어, 특정 요청 라이프사이클을 탐색하고, 각 세그먼트에 대한 지연 시간을 보고, 스택 트레이스와 연관된 보고된 예외를 볼 수 있습니다. 응답이 502로 보고된 추적 중 아무 ID나 클릭하여 나타나는 **Trace Details** 페이지에서 **hangingException**을 클릭하면 코드에서 예외가 발생한 곳의 특정 하위 세그먼트를 볼 수 있습니다:
 
 ![Exception](/images/module-6/exception.png)
 
-Congratulations, you've completed module 6!
+축하합니다, 모듈 6을 완료했습니다!
 
-### [Proceed to Module 7](/module-7)
-
+### [모듈 7 진행](/module-7)
 
 #### [AWS Developer Center](https://developer.aws)
