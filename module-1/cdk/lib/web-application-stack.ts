@@ -68,7 +68,7 @@ export class WebApplicationStack extends cdk.Stack {
     // Create a CDK Output which details the URL for the CloudFront Distribtion URL.
     new cdk.CfnOutput(this, "CloudFrontURL", {
       description: "The CloudFront distribution URL",
-      value: "http://" + cdn.domainName
+      value: "https://" + cdn.domainName
     });
   }
 }
