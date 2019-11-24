@@ -22,6 +22,7 @@ S3와 CloudFront의 조합은 정적 웹 콘텐츠(html, js, css, 미디어 등)
 ## 시작하기
 
 ### AWS 콘솔에 로그인
+
 시작하기 위해 워크샵에서 사용할 계정으로 [AWS Console](https://console.aws.amazon.com)에 로그인합니다.
 
 This web application can be deployed in any AWS region that supports all the services used in this application. The supported regions include:
