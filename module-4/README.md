@@ -160,10 +160,9 @@ import { CognitoStack } from '../lib/cognito-stack';
 const cognito = new CognitoStack(app,  "MythicalMysfits-Cognito");
 ```
 
-이제 Cognito 리소스를 배포합니다. CDK 애플리케이션이 오류없이 컴파일되는지 확인하고 애플리케이션을 AWS 계정에 배포합니다:
+이제 Cognito 리소스를 배포합니다:
 
 ```sh
-npm run build
 cdk deploy MythicalMysfits-Cognito
 ```
 
@@ -194,8 +193,14 @@ touch lib/apigateway-stack.ts
 ```typescript
 import cdk = require('@aws-cdk/core');
 
+interface APIGatewayStackProps extends cdk.StackProps {
+  loadBalancerDnsName: string;
+  loadBalancerArn: string;
+  userPoolId: string;
+}
+
 export class APIGatewayStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id:string) {
+  constructor(scope: cdk.Construct, id:string, props: APIGatewayStackProps) {
     super(scope, id);
 
     // The code that defines your stack goes here
@@ -216,6 +221,7 @@ import { EcrStack } from "../lib/ecr-stack";
 import { EcsStack } from "../lib/ecs-stack";
 import { CiCdStack } from "../lib/cicd-stack";
 import { DynamoDbStack } from '../lib/dynamodb-stack';
+import { CognitoStack } from '../lib/cognito-stack';
 import { APIGatewayStack } from "../lib/apigateway-stack";
 
 const app = new cdk.App();
@@ -231,18 +237,22 @@ new CiCdStack(app, "MythicalMysfits-CICD", {
     ecsService: ecsStack.ecsService.service
 });
 const dynamoDbStack = new DynamoDbStack(app, "MythicalMysfits-DynamoDB", {
+    vpc: networkStack.vpc,
     fargateService: ecsStack.ecsService.service
 });
+const cognito = new CognitoStack(app,  "MythicalMysfits-Cognito");
 new APIGatewayStack(app, "MythicalMysfits-APIGateway", {
-  vpc: networkStack.vpc,
-  fargateService: ecsStack.ecsService.service
+  userPoolId: cognito.userPool.userPoolId,
+  loadBalancerArn: ecsStack.ecsService.loadBalancer.loadBalancerArn,
+  loadBalancerDnsName: ecsStack.ecsService.loadBalancer.loadBalancerDnsName
 });
+app.synth();
 ```
 
 `workshop/cdk/` 디렉토리에서 다음 명령으로 API Gateway AWS CDK npm 패키지를 설치합니다:
 
 ```sh
-npm install --save-dev @aws-cdk/aws-apigateway@1.15.0
+npm install --save-dev @aws-cdk/aws-apigateway
 ```
 
 `APIGatewayStack.ts`에서, 작성할 코드를 위해 class import를 정의합니다:
@@ -251,30 +261,15 @@ npm install --save-dev @aws-cdk/aws-apigateway@1.15.0
 import cdk = require('@aws-cdk/core');
 import apigateway = require('@aws-cdk/aws-apigateway');
 import elbv2 = require('@aws-cdk/aws-elasticloadbalancingv2');
-import ecspatterns = require('@aws-cdk/aws-ecs-patterns');
 import fs = require('fs');
 import path = require('path');
 ```
 
-다음으로 API Gateway 구현체의 다른 스택과의 종속성을 자세히 기술하기위해 Stack Properties 클래스를 정의합니다:
-
-```typescript
-interface APIGatewayStackProps extends cdk.StackProps {
-  fargateService: ecspatterns.NetworkLoadBalancedFargateService;
-}
-```
-
-APIGatewayStack의 생성자가 속성 객체를 인자로 받게끔 수정합니다:
-
-```typescript
-  constructor(scope: cdk.Construct, id: string, props: APIGatewayStackProps) {
-```
-
-`APIGatewayStack` 클래스의 생성자에서 모듈 2에서 생성한 ECS Cluster에서 Network Load Balancer를 import합니다:
+이제, `APIGatewayStack` 클래스의 생성자에서 모듈 2에서 생성한 ECS 클러스터로부터 Network Load Balancer를 import 하겠습니다:
 
 ```typescript
 const nlb = elbv2.NetworkLoadBalancer.fromNetworkLoadBalancerAttributes(this, 'NLB', {
-  loadBalancerArn: props.fargateService.loadBalancer.loadBalancerArn,
+  loadBalancerArn: props.loadBalancerArn,
 });
 ```
 
@@ -282,7 +277,7 @@ const nlb = elbv2.NetworkLoadBalancer.fromNetworkLoadBalancerAttributes(this, 'N
 
 ```typescript
 const vpcLink = new apigateway.VpcLink(this, 'VPCLink', {
-  description: 'VPCLink for our REST API',
+  description: 'VPCLink for our  REST API',
   vpcLinkName: 'MysfitsApiVpcLink',
   targets: [
     nlb
@@ -290,19 +285,16 @@ const vpcLink = new apigateway.VpcLink(this, 'VPCLink', {
 });
 ```
 
-이제 생성자 밑에 swagger 파일에 명시되어있는 API를 import할 헬퍼 함수를 작성하겠습니다. Cognito UserPool ID(`us-east-1_ab12345YZ`와 같은)를 앞서 저장한 것으로 교체하는 걸 잊지 마시기 바랍니다:
-
-> **참고:** 아래 코드에서 `REPLACE_ME_COGNITO_USER_POOL_ID`만 교체해야되는 값입니다. 나머지 `REPLACE_ME` 플레이스홀더의 값은 자동으로 교체될 것입니다.
+이제 생성자 밑에 swagger 파일에 명시되어있는 API를 import할 헬퍼 함수를 작성하겠습니다:
 
 ```typescript
-private generateSwaggerSpec(dnsName: string, vpcLink: apigateway.VpcLink): string {
+private generateSwaggerSpec(dnsName: string, userPoolId: string, vpcLink: apigateway.VpcLink): string {
   try {
-    const userPoolIdentity = 'us-east-1_ab12345YZ'; // REPLACE THIS WITH YOUR COGNITO POOL ID
     const schemaFilePath = path.resolve(__dirname + '/../../source/module-4/api/api-swagger.json');
     const apiSchema = fs.readFileSync(schemaFilePath);
     let schema: string = apiSchema.toString().replace(/REPLACE_ME_REGION/gi, cdk.Aws.REGION);
     schema = schema.toString().replace(/REPLACE_ME_ACCOUNT_ID/gi, cdk.Aws.ACCOUNT_ID);
-    schema = schema.toString().replace(/REPLACE_ME_COGNITO_USER_POOL_ID/gi, userPoolIdentity);
+    schema = schema.toString().replace(/REPLACE_ME_COGNITO_USER_POOL_ID/gi, userPoolId);
     schema = schema.toString().replace(/REPLACE_ME_VPC_LINK_ID/gi, vpcLink.vpcLinkId);
     schema = schema.toString().replace(/REPLACE_ME_NLB_DNS/gi, dnsName);
     return schema;
@@ -315,7 +307,7 @@ private generateSwaggerSpec(dnsName: string, vpcLink: apigateway.VpcLink): strin
 마지막으로 생성자로 돌아가 API Gateway가 우리가 작성한 헬퍼 함수를 활용하도록 합니다:
 
 ```typescript
-const schema = this.generateSwaggerSpec(props.fargateService.loadBalancer.loadBalancerDnsName, vpcLink);
+const schema = this.generateSwaggerSpec(props.loadBalancerDnsName, props.userPoolId, vpcLink);
 const jsonSchema = JSON.parse(schema);
 const api = new apigateway.CfnRestApi(this, 'Schema', {
   name: 'MysfitsApi',
@@ -342,10 +334,6 @@ new cdk.CfnOutput(this, 'APIID', {
 완료 후 스택을 배포합니다:
 
 ```sh
-npm run build
-```
-
-```sh
 cdk deploy MythicalMysfits-APIGateway
 ```
 
@@ -355,7 +343,7 @@ cdk deploy MythicalMysfits-APIGateway
 https://REPLACE_ME_WITH_API_ID.execute-api.REPLACE_ME_WITH_REGION.amazonaws.com/prod/mysfits
 ```
 
-위의 주소를 복사하고 적절한 값으로 교체한 뒤 브라우저의 주소창에 입력합니다. Mysfits JSON 응답을 다시 볼 수 있을 것입니다. 그러나 Flask 백엔드가 아직 구현하지 않은 mysfit를 입양하고 좋아하는 것과 같은 몇 가지 기능을 추가했습니다.
+위의 주소를 복사하고 적절한 값으로 교체한 뒤 브라우저의 주소창에 입력합니다. Mysfits JSON 응답을 다시 볼 수 있을 것입니다. 그러나 우리가 추가한 미스핏츠를 좋아하고 입양하는 등의 추가 기능의 Flask 백엔드는 아직 구현하지 않았습니다.
 
 다음으로 이 부분들을 처리해보겠습니다.
 
@@ -365,17 +353,17 @@ https://REPLACE_ME_WITH_API_ID.execute-api.REPLACE_ME_WITH_REGION.amazonaws.com/
 미스핏츠 프로필 보기, 좋아하기, 입양하기의 새로운 기능들을 수용하기 위해 백엔드 Flask 웹서비스를 위한 업데이트된 Python 코드가 포함되어있습니다. 이 파일들로 기존 코드베이스를 덮어 쓰고, 리포지토리에 푸시하겠습니다:
 
 ```sh
-cp ~/environment/workshop/source/module-4/app/service/* ~/environment/MythicalMysfits-BackendRepository/service/
+cp ~/environment/workshop/source/module-4/app/service/* ~/environment/workshop/app/service/
 ```
 
 ```sh
-cd ~/environment/MythicalMysfits-BackendRepository
+cd ~/environment/workshop/app
 git add .
 git commit -m "Update service code backend to enable additional website features."
 git push
 ```
 
-이러한 서비스 업데이트가 CI/CD 파이프라인을 통해 자동으로 푸시되는 동안 다음 단계를 계속하겠습니다.
+서비스 업데이트가 CI/CD 파이프라인을 통해 자동으로 푸시되는 동안 다음 단계를 계속하겠습니다.
 
 #### S3로 신비한 미스핏츠 웹사이트 업데이트
 
@@ -401,13 +389,12 @@ aws apigateway get-rest-apis --query 'items[?name==`MysfitsApi`][id]' --output t
 aws configure get region
 ```
 
-Cloud9 IDE에서 `~/environment/workshop/web/register.html` 파일을 열고 작은 따옴표 안의 **REPLACE_ME** 문자열을 위에서 복사한 Cognito UserPool ID와 Cognito UserPool Client ID 값으로 바꾸고 파일을 저장합니다. `~/environment/workshop/web/confirm.html` 파일에 대해서도 동일한 단계를 반복합니다.
+Cloud9 IDE에서 `~/environment/workshop/web/register.html` 파일을 열고 작은 따옴표 안의 **REPLACE_ME** 문자열을 위에서 복사한 Cognito UserPool ID와 Cognito UserPool Client ID 값으로 바꾸고 파일을 저장합니다. `~/environment/workshop/web/confirm.html` 파일에 대해서도 동일한 과정을 반복합니다.
 
 S3 호스팅 웹사이트를 업데이트하고 `MythicalMysfits-Website` 스택을 배포합니다:
 
 ```sh
 cd ~/environment/workshop/cdk/
-npm run build
 cdk deploy MythicalMysfits-Website
 ```
 

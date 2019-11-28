@@ -390,7 +390,6 @@ const api = new apigw.LambdaRestApi(this, "APIEndpoint", {
 그런 다음 CDK 스택을 다시 배포합니다:
 
 ```sh
-npm run build
 cdk deploy MythicalMysfits-XRay
 ```
 
@@ -409,7 +408,6 @@ AWS CDK를 사용하여 이러한 기능의 첫번째 배포를 이미 완료했
 이러한 변경을 수행한 후, 다음 두 명령을 실행하여 Lambda 함수 코드에 대한 업데이트를 배포합니다:
 
 ```sh
-npm run build
 cdk deploy MythicalMysfits-XRay
 ```
 
@@ -419,7 +417,7 @@ cdk deploy MythicalMysfits-XRay
 
 ### AWS X-Ray 관련 문제 해결
 
-이번 모듈의 마지막 단계는 AWS X-Ray를 사용하여 애플리케이션의 문제를 심사하는데 익숙해지는 것입니다. 이를 위해, 애플리케이션에 끔찍한 코드를 추가하도록 하겠습니다. 이 코드는 하는건 웹서비스에 5초의 대기시간을 추가하고 무작위 요청에 대해 예외를 발생시키는 것입니다 :) .
+이번 모듈의 마지막 단계는 AWS X-Ray를 사용하여 애플리케이션의 문제를 심사하는데 익숙해지는 것입니다. 이를 위해, 우리가 *미스핏츠*가 되어 애플리케이션에 끔찍한 코드를 추가하도록 하겠습니다. 이 코드는 웹서비스에 5초의 대기시간을 추가하고 무작위 요청에 대해 예외를 발생시키는 것입니다 :) .
 
 다음 파일로 돌아가서 `#UNCOMMENT_BEFORE_3RD_DEPLOYMENT`로 표시된 주석을 제거합니다:  
 * `~/environment/lambda-questions/PostQuestionsService/mysfitsPostQuestion.py`
@@ -428,14 +426,13 @@ cdk deploy MythicalMysfits-XRay
 
 운영하는 애플리케이션 내에서 이 기능을 사용하면 코드 내의 위와 비슷한 지연 병목현상이나 예외가 발생하는 위치를 식별하는데 도움이 됩니다.
 
-필요한 코드를 변경하고 `mysfitsPostQuestion.py` 파일을 저장한 후, 변경 사항을 배포하기 전에 이전과 동일한 두 명령을 실행합니다:
+필요한 코드를 변경하고 `mysfitsPostQuestion.py` 파일을 저장한 후, 변경 사항을 배포하기 전에 이전과 동일한 명령을 실행합니다:
 
 ```sh
-npm run build
 cdk deploy MythicalMysfits-XRay
 ```
 
-이 두 명령을 실행한 후, 미스핏츠 웹사이트에서 다른 몇 가지 질문을 제출해보겠습니다. 질문 중 몇개는 이메일 편지함에 나타나지 않을 것이고, 이는 새로운 끔찍한 코드가 오류를 발생시키기 때문입니다!
+이 명령을 실행한 후, 미스핏츠 웹사이트에서 다른 몇 가지 질문을 제출해보겠습니다. 질문 중 몇개는 이메일 편지함에 나타나지 않을 것이고, 이는 새로운 끔찍한 코드가 오류를 발생시켰기 때문입니다!
 
 X-Ray 콘솔을 다시 방문하면, MysfitPostQuestionsFunction Lambda 함수의 서비스 맵에 더 이상 녹색이 아닌 링이 있는걸 알 수 있습니다. 이는 오류 응답이 생겼기 때문입니다. X-Ray는 서비스맵에있는 모든 구성된 서비스들의 전반적인 서비스 상태를 시각적으로 보여줍니다.
 

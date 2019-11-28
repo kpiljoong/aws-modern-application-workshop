@@ -61,7 +61,7 @@ export class SageMakerStack extends cdk.Stack {
 다음으로 SageMaker AWS CDK NPM 패키지를 설치합니다:
 
 ```sh
-npm install --save-dev @aws-cdk/aws-sagemaker@1.15.0
+npm install --save-dev @aws-cdk/aws-sagemaker
 ```
 
 코드에서 사용할 모듈을 import합니다:
@@ -242,7 +242,7 @@ cd ~/environment/
 git clone REPLACE_ME_WITH_ABOVE_CLONE_URL lambda-recommendations
 ```
 
-### Questions 서비스 코드베이스 복사
+### Recommendations 서비스 코드베이스 복사
 
 이제 클론한 리포지토리로 이동합니다:
 ```
@@ -410,7 +410,6 @@ cp -r ~/environment/workshop/source/module-7/web/* ~/environment/workshop/web
 이제 S3 호스팅 웹사이트를 업데이트하고 `MythicalMysfits-Website` 스택을 배포합니다:
 
 ```sh
-npm run build
 cdk deploy MythicalMysfits-Website
 ```
 

@@ -23,11 +23,12 @@
 현대적인 애플리케이션 디자인 원칙은 집중적이고, 분리된 모듈식 서비스를 선호합니다. 그래서 지금까지 작업해온 기존 Mysfits 서비스 내에 추가적인 방법과 기능을 추가하는 대신, 미스핏츠 웹사이트에서 사용자 클릭 이벤트를 받는 목적의 새 분리된 서비스를 추가하겠습니다.
 
 생성할 서버리스 실시간 처리 서비스 스택은 다음 AWS 리소스를 포함합니다:
-* An [**AWS Kinesis Data Firehose delivery stream**](https://aws.amazon.com/kinesis/data-firehose/): Kinesis Firehose is a highly available and managed real-time streaming service that accepts data records and automatically ingests them into several possible storage destinations within AWS, examples including an Amazon S3 bucket, or an Amazon Redshift data warehouse cluster. Kinesis Firehose also enables all of the records received by the stream to be automatically delivered to a serverless function created with **AWS Lambda** This means that code you've written can perform any additional processing or transformations of the records before they are aggregated and stored in the configured destination.
-* An [**Amazon S3 bucket**](https://aws.amazon.com/s3/): A new bucket will be created in S3 where all of the processed click event records are aggregated into files and stored as objects.
-* An [**AWS Lambda function**](https://aws.amazon.com/lambda/): AWS Lambda enables developers to write code functions that only contain what their logic requires and have their code be deployed, invoked, made highly reliable, and scale without having to manage infrastructure whatsoever. Here, a Serverless code function is defined using AWS SAM. It will be deployed to AWS Lambda, written in Python, and then process and enrich the click records that are received by the delivery stream.  The code we've written is very simple and the enriching it does could have been accomplished on the website frontend without any subsequent processing  at all.  The function retrieves additional attributes about the clicked on Mysfit to make the click record more meaningful (data that was already retrieved by the website frontend).  But, for the purpose of this workshop, the code is meant to demonstrate the architectural possibilities of including a serverless code function to perform any additional processing or transformation required, in real-time, before records are stored.  Once the Lambda function is created and the Kinesis Firehose delivery stream is configured as an event source for the function, the delivery stream will automatically deliver click records as events to code function we've created, receive the responses that our code returns, and deliver the updated records to the configured Amazon S3 bucket.
-* An [**Amazon API Gateway REST API**](https://aws.amazon.com/api-gateway/): AWS Kinesis Firehose provides a service API just like other AWS services, and in this case we are using its PutRecord operation to put user click event records into the delivery stream. But, we don't want our website frontend to have to directly integrate with the Kinesis Firehose PutRecord API.  Doing so would require us to manage AWS credentials within our frontend code to authorize those API requests to the PutRecord API, and it would expose to users the direct AWS API that is being depended on (which may encourage malicious site visitors to attempt to add records to the delivery stream that are malformed, or harmful to our goal of understanding real user behavior).  So instead, we will use Amazon API Gateway to create an **AWS Service Proxy** to the PutRecord API of Kinesis Firehose.  This allows us to craft our own public RESTful endpoint that does not require AWS credential management on the frontend for requests. Also, we will use a request **mapping template** in API Gateway as well, which will let us define our own request payload structure that will restrict requests to our expected structure and then transform those well-formed requests into the structure that the Kinesis Firehose PutRecord API requires.
-* [**IAM Roles**](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html): Kinesis Firehose requires a service role that allows it to deliver received records as events to the created Lambda function as well as the processed records to the destination S3 bucket. The Amazon API Gateway API also requires a new role that permits the API to invoke the PutRecord API within Kinesis Firehose for each received API request.
+
+* [**AWS Kinesis Data Firehose 전송 스트림**](https://aws.amazon.com/kinesis/data-firehose/): Kinesis Firehose는 데이터 레코드를 허용하고 Amazon S3 버킷 또는 Amazon Redshift 데이터 웨어하우스 클러스터를 비롯한 AWS 내의 여러 가능한 스토리지에 자동으로 적재하는 가용성이 높은 관리형 실시간 스트리밍 서비스입니다. 또, Kinesis Firehose는 **AWS Lambda**로 생성 된 서버리스 함수로 스트림이 수신 한 모든 레코드를 자동으로 전달할 수 있습니다. 이는 작성한 코드가 레코드가 적재되기 전과 구성된 저장소에 저장되기 전에 추가 처리 또는 변환을 수행 할 수 있도록 합니다.
+* [**Amazon S3 버킷**](https://aws.amazon.com/s3/): 처리된 모든 클릭 이벤트 레코드가 파일에 적재되어 객체로 저장될 새로운 버킷.
+* [**AWS Lambda 함수**](https://aws.amazon.com/lambda/): AWS Lambda를 통해 개발자는 필요한 로직만 포함되도록 코드를 작성하고, 코드를 배포, 호출, 인프라를 관리하지 않고도 높은 안정성과 확장성을 얻을 수 있도록 합니다. 여기서 서버리스 코드 함수는 AWS SAM으로 정의됩니다. Python으로 작성되어 AWS Lambda에 배포된 다음 전송 스트림에서 수신한 클릭 레코드를 처리하고 보강합니다. 우리가 작성한 코드는 매우 간단하며 후속 처리없이 웹사이트 프론트엔드에서 기능을 강화시킵니다. 이 함수는 클릭 레코드를 (웹사이트 프론트엔드에서 얻은 데이터 보다) 더 의미있게 만들기위해 클릭된 미스핏츠에 대한 추가 속성을 검색합니다. 하지만, 워크샵의 목적 상 이 코드는 레코드가 저장되기 전 실시간으로 필요한 추가 처리나 변환을 수행할 수 있는 서버리스 코드 함수를 포함한 아키텍처 가능성을 보여주기 위함입니다. Lambda 함수가 생성되고 Kinesis Firehose 전송 스트림이 해당 함수의 이벤트 소스로 구성되면, 전송 스트림은 클릭 레코드를 이벤트로 생성한 코드 함수에 자동으로 전달하고, 코드가 반환하는 응답을 받고, 업데이트된 레코드를 구성한 Amazon S3 버킷으로 전달합니다. 
+* [**Amazon API Gateway REST API**](https://aws.amazon.com/api-gateway/): AWS Kinesis Firehose는 다른 AWS 서비스와 같이 서비스 API를 제공합니다. 우리의 경우 PutRecord 작업을 사용하여 사용자 클릭 이벤트 레코드를 전송 스트림에 넣습니다. 하지만, 웹사이트 프론트엔드가 Kinesis Firehose PutRecord API와 직접 통합되는 것을 원치 않습니다. 그렇게 하기위해서는 프론트엔트 코드내에서 AWS 자격증명을 관리하여 PutRecord API 호출을 위한 API에 권한을 부여하고, 의존하는 AWS API를 노출해야합니다 (악의적인 사이트 방문자가 전송 스트림에 사용자 행동을 이해하기 위한 목적을 방해하고 유해한 레코드를 추가하는 시도를 할 수도 있습니다). 대신에, Amazon API Gateway를 사용하여 Kinesis Firehose의 PutRecord API의 **AWS Service Proxy**를 생성할 것입니다. 이를 통해 요청의 프론트엔드에서 AWS 자격증명 관리가 필요없는 자체 공개 RESTful 엔드포인트를 만들 수 있습니다. 또, API Gateway의 요청 **mapping template**을 사용하여 자체 요청 페이로드 구조를 정의하고, 요청을 필요한 구조로 제한한 다음, 잘 구성된 요청을 Kinesis Firehose PutRecord API가 필요로하는 구조로 변환할 수 있습니다.
+* [**IAM Roles**](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html): Kinesis Firehose는 Lambda 함수에 수신한 레코드를 이벤트로 전달하고, S3 버킷에 처리된 레코드를 전달할 수 있는 서비스 역할이 필요합니다. 또한, Amazon API Gateway API는 각 API 요청에 대해 Kinesis Firehose 내에서 PutRecord API를 호출할 수 있도록하는 새로운 역할이 필요합니다.
 
 위에서 설명한 리소스를 만들기 전에 Lambda 함수 코드를 업데이트하고 수정해야합니다.
 
@@ -89,7 +90,7 @@ interface KinesisFirehoseStackProps extends cdk.StackProps {
   constructor(scope: cdk.Construct, id: string, props: KinesisFirehoseStackProps) {
 ```
 
-`KinesisFirehoseStack` 생서앚에서, 우리가 작성할 Kinesis Firehose와 Lambda 코드에 사용할 CodeCommit 리포지토리를 추가합니다:
+`KinesisFirehoseStack` 생성자에서, 우리가 작성할 Kinesis Firehose와 Lambda 코드에 사용할 CodeCommit 리포지토리를 추가합니다:
 
 ```typescript
 const lambdaRepository = new codecommit.Repository(this, "ClicksProcessingLambdaRepository", {
@@ -210,7 +211,7 @@ git push
 cd ~/environment/workshop/cdk
 ```
 
-`KinesisFirehoseStack` 파일로 돌아가서, Kinesis Firehose 인프라를 정의합니다. 먼저, kinesis firehose 구현을 정의합니다:
+`KinesisFirehoseStack` 파일로 돌아가서, Kinesis Firehose 인프라를 정의합니다. 먼저, Kinesis Firehose 구현을 정의합니다:
 
 ```typescript
 const clicksDestinationBucket = new s3.Bucket(this, "Bucket", {
@@ -422,12 +423,11 @@ cdk deploy MythicalMysfits-KinesisFirehose
 cp -r ~/environment/workshop/source/module-5/web/* ~/environment/workshop/web
 ```
 
-이 파일에는 업데이트가 필요한 모듈-4와 동일한 플레이스홀더와 새 스트림 프로세싱 서비스 엔디포인트에 대한 추가 플레이스홀더를  포함하고 있습니다. `streamingApiEndpoint` 값은 앞에서 기록해둔 API Gateway 엔드포인트입니다.
+이 파일에는 업데이트가 필요한 모듈-4와 동일한 플레이스홀더와 새 스트림 프로세싱 서비스 엔디포인트에 대한 추가 플레이스홀더를 포함하고 있습니다. `streamingApiEndpoint` 값은 앞에서 기록해둔 API Gateway 엔드포인트입니다.
 
 이제 S3 호스팅 웹사이트를 업데이트하고 `MythicalMysfits-Website` 스택을 배포합니다:
 
 ```sh
-npm run build
 cdk deploy MythicalMysfits-Website
 ```
 
