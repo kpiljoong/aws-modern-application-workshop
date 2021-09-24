@@ -75,9 +75,9 @@ public readonly userPoolClient: cognito.UserPoolClient;
 ```typescript
 this.userPool = new cognito.UserPool(this, 'UserPool', {
   userPoolName: 'MysfitsUserPool',
-  autoVerifiedAttributes: [
-    cognito.UserPoolAttribute.EMAIL
-  ]
+  autoVerify: {
+    email: true
+  }
 });
 ```
 
@@ -123,9 +123,9 @@ export class CognitoStack extends cdk.Stack {
 
     this.userPool = new cognito.UserPool(this, 'UserPool', {
       userPoolName: 'MysfitsUserPool',
-      autoVerifiedAttributes: [
-        cognito.UserPoolAttribute.EMAIL
-      ]
+      autoVerify: {
+        email: true
+      }
     });
 
     this.userPoolClient = new cognito.UserPoolClient(this, 'UserPoolClient', {
@@ -160,9 +160,44 @@ import { CognitoStack } from '../lib/cognito-stack';
 const cognito = new CognitoStack(app,  "MythicalMysfits-Cognito");
 ```
 
+지금까지 완료를하면 `bin/cdk.ts` 파일은 다음처럼 보여야합니다:
+
+```typescript
+#!/usr/bin/env node
+
+import cdk = require("@aws-cdk/core");
+import 'source-map-support/register';
+import { WebApplicationStack } from "../lib/web-application-stack";
+import { NetworkStack } from "../lib/network-stack";
+import { EcrStack } from "../lib/ecr-stack";
+import { EcsStack } from "../lib/ecs-stack";
+import { CiCdStack } from "../lib/cicd-stack";
+import { CognitoStack } from '../lib/cognito-stack';
+import { DynamoDbStack } from '../lib/dynamodb-stack';
+
+const app = new cdk.App();
+new WebApplicationStack(app, "MythicalMysfits-Website");
+const networkStack = new NetworkStack(app, "MythicalMysfits-Network");
+const ecrStack = new EcrStack(app, "MythicalMysfits-ECR");
+const ecsStack = new EcsStack(app, "MythicalMysfits-ECS", {
+    vpc: networkStack.vpc,
+    ecrRepository: ecrStack.ecrRepository
+});
+new CiCdStack(app, "MythicalMysfits-CICD", {
+    ecrRepository: ecrStack.ecrRepository,
+    ecsService: ecsStack.ecsService.service
+});
+const dynamoDbStack = new DynamoDbStack(app, "MythicalMysfits-DynamoDB", {
+    vpc: networkStack.vpc,
+    fargateService: ecsStack.ecsService.service
+});
+const cognito = new CognitoStack(app, "MythicalMysfits-Cognito");
+```
+
 이제 Cognito 리소스를 배포합니다:
 
 ```sh
+npm run build
 cdk deploy MythicalMysfits-Cognito
 ```
 
@@ -246,7 +281,6 @@ new APIGatewayStack(app, "MythicalMysfits-APIGateway", {
   loadBalancerArn: ecsStack.ecsService.loadBalancer.loadBalancerArn,
   loadBalancerDnsName: ecsStack.ecsService.loadBalancer.loadBalancerDnsName
 });
-app.synth();
 ```
 
 `workshop/cdk/` 디렉토리에서 다음 명령으로 API Gateway AWS CDK npm 패키지를 설치합니다:

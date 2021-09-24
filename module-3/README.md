@@ -200,6 +200,7 @@ props.fargateService.taskDefinition.addToTaskRolePolicy(
 완료 후 DynamoDB 테이블을 배포합니다:
 
 ```sh
+npm run build
 cdk deploy MythicalMysfits-ECS MythicalMysfits-DynamoDB
 ```
 
@@ -278,6 +279,7 @@ NLB를 가르키도록 엔드포인트를 교체한 후 S3 호스팅 웹사이�
 
 ```sh
 cd ~/environment/workshop/cdk/
+npm run build
 cdk deploy MythicalMysfits-Website
 ```
 

@@ -149,7 +149,6 @@ new APIGatewayStack(app, "MythicalMysfits-APIGateway", {
 new KinesisFirehoseStack(app, "MythicalMysfits-KinesisFirehose", {
     table: dynamoDbStack.table
 });
-app.synth();
 ```
 
 `KinesisFirehoseStack` 구현이 아직 완료되지는 않았지만 지금까지 작성한 것을 배포해보겠습니다:
@@ -428,6 +427,7 @@ cp -r ~/environment/workshop/source/module-5/web/* ~/environment/workshop/web
 이제 S3 호스팅 웹사이트를 업데이트하고 `MythicalMysfits-Website` 스택을 배포합니다:
 
 ```sh
+npm run build
 cdk deploy MythicalMysfits-Website
 ```
 

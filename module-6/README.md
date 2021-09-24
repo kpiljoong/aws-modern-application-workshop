@@ -134,7 +134,6 @@ new KinesisFirehoseStack(app, "MythicalMysfits-KinesisFirehose", {
     table: dynamoDbStack.table
 });
 new XRayStack(app, "MythicalMysfits-XRay");
-app.synth();
 ```
 
 아직 `XRayStack` 구현 작성이 완료되지 않았지만 현재까지 작성한 것을 배포 해 봅니다:
@@ -390,6 +389,7 @@ const api = new apigw.LambdaRestApi(this, "APIEndpoint", {
 그런 다음 CDK 스택을 다시 배포합니다:
 
 ```sh
+npm run build
 cdk deploy MythicalMysfits-XRay
 ```
 
@@ -408,6 +408,7 @@ AWS CDK를 사용하여 이러한 기능의 첫번째 배포를 이미 완료했
 이러한 변경을 수행한 후, 다음 두 명령을 실행하여 Lambda 함수 코드에 대한 업데이트를 배포합니다:
 
 ```sh
+npm run build
 cdk deploy MythicalMysfits-XRay
 ```
 
@@ -429,6 +430,7 @@ cdk deploy MythicalMysfits-XRay
 필요한 코드를 변경하고 `mysfitsPostQuestion.py` 파일을 저장한 후, 변경 사항을 배포하기 전에 이전과 동일한 명령을 실행합니다:
 
 ```sh
+npm run build
 cdk deploy MythicalMysfits-XRay
 ```
 

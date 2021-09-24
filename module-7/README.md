@@ -184,7 +184,6 @@ new KinesisFirehoseStack(app, "MythicalMysfits-KinesisFirehose", {
 });
 new XRayStack(app, "MythicalMysfits-XRay");
 new SageMakerStack(app, "MythicalMysfits-SageMaker");
-app.synth();
 ```
 
 아직 `SageMakerStack` 구현이 완료 되진 않았지만, 작성한 것까지만 배포해보도록 하겠습니다:
@@ -410,6 +409,7 @@ cp -r ~/environment/workshop/source/module-7/web/* ~/environment/workshop/web
 이제 S3 호스팅 웹사이트를 업데이트하고 `MythicalMysfits-Website` 스택을 배포합니다:
 
 ```sh
+npm run build
 cdk deploy MythicalMysfits-Website
 ```
 

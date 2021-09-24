@@ -121,7 +121,7 @@ cdk synth -o templates
 
 ```typescript
 this.vpc = new ec2.Vpc(this, "VPC", {
-  natGateways: 2,
+  natGateways: 1,
   maxAzs: 2
 });
 ```
@@ -287,8 +287,8 @@ cdk deploy MythicalMysfits-ECR
 
 컨테이너 이미지를 새 리포지토리에 푸시하기위해서는 도커 클라이언트를 위한 인증 자격증명을 획득해야합니다. 아래 명령을 실행하면 도커 클라이언트를 위한 자격증명을 획득하는 로그인 명령을 보여주며, 그 명령을 자동으로 실행해줍니다 (명령은 $를 포함합니다). 문제 없이 명령이 수행되면 'Login Succeeded'를 볼 수 있습니다:
 
-```
-$(aws ecr get-login --no-include-email)
+```sh
+aws ecr get-login-password | docker login --username AWS --password-stdin $(aws sts get-caller-identity --query Account --output text).dkr.ecr.$(aws configure get region).amazonaws.com
 ```
 
 그런 다음, 위에서 복사한 태그를 사용하여 ECR 리포지토리에 이미지를 푸시합니다. 아래 명령을 사용하면 도커는 생성한 이미지와 함께 연관된 모든 이미지를 Amazon ECR에 푸시할 것 입니다:

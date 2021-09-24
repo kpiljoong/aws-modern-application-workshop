@@ -32,6 +32,7 @@ This web application can be deployed in any AWS region that supports all the ser
 * us-west-2 (Oregon)
 * ap-southeast-1 (Singapore)
 * ap-northeast-1 (Tokyo)
+* ap-northeast-2 (Seoul)
 * eu-central-1 (Frankfurt)
 * eu-west-1 (Ireland)
 
@@ -70,7 +71,7 @@ mkdir workshop && cd workshop
 터미널에서 다음 git 명령으로 이번 모듈에서 필요한 코드를 가져오겠습니다:
 
 ```sh
-git clone -b python-cdk-ko https://github.com/aws-samples/aws-modern-application-workshop.git source
+git clone -b python-cdk-ko https://github.com/kpiljoong/aws-modern-application-workshop.git source
 ```
 
 리포지토리 복제가 완료된 후 IDE 왼쪽의 프로젝트 탐색기에서 복제한 파일을 볼 수 있습니다::
@@ -126,7 +127,7 @@ mkdir cdk && cd cdk/
 본 워크샵에서는 TypeScript을 프로그래밍 언어로 선택합니다:
 
 ```sh
-cdk init --language typescript
+cdk init app --language typescript
 ```
 
 위의 명령으로 새로운 CDK 앱이 `cdk` 폴더에 초기화됩니다. 초기화 과정의 일환으로 해당 디렉토리는 새로운 git 리포지토리로 설정됩니다.
@@ -173,6 +174,7 @@ new WebApplicationStack(app, "MythicalMysfits-Website");
 ```sh
 npm install --save-dev @types/node @aws-cdk/aws-cloudfront @aws-cdk/aws-iam @aws-cdk/aws-s3 @aws-cdk/aws-s3-deployment
 ```
+
 
 ### 웹 애플리케이션 코드 복사
 
@@ -229,14 +231,14 @@ S3 버킷으로의 접근을 제어하여 CloudFront 배포에서만 접근할 �
 `web-application-stack.ts` 생성자 안에 다음 코드를 작성합니다:
 
 ```typescript
-const origin = new cloudfront.CfnCloudFrontOriginAccessIdentity(this, "BucketOrigin", {
-  cloudFrontOriginAccessIdentityConfig: {
+// Obtain the cloudfront origin access identity so that the s3 bucket may be restricted to it.
+const origin = new cloudfront.OriginAccessIdentity(this, "BucketOrigin", {
     comment: "mythical-mysfits"
-  }
 });
 
+// Restrict the S3 bucket via a bucket policy that only allows our CloudFront distribution
 bucket.grantRead(new iam.CanonicalUserPrincipal(
-  origin.attrS3CanonicalUserId
+  origin.cloudFrontOriginAccessIdentityS3CanonicalUserId
 ));
 ```
 
@@ -261,7 +263,7 @@ const cdn = new cloudfront.CloudFrontWebDistribution(this, "CloudFront", {
       originPath: `/web`,
       s3OriginSource: {
         s3BucketSource: bucket,
-        originAccessIdentityId: origin.ref
+        originAccessIdentity: origin
       }
     }
   ]
@@ -280,7 +282,6 @@ new s3deploy.BucketDeployment(this, "DeployWebsite", {
   destinationKeyPrefix: "web/",
   destinationBucket: bucket,
   distribution: cdn,
-  distributionPaths: [ '/index.html' ],
   retainOnDelete: false
 });
 ```

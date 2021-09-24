@@ -98,7 +98,7 @@ def getMysfit(mysfitId):
     mysfit["name"] = item["Name"]["S"]
     mysfit["age"] = int(item["Age"]["N"])
     mysfit["goodevil"] = item["GoodEvil"]["S"]
-    mysfit["lawchaos"] = item["LawChaos"]["S"]
+    mysfit["lawchaos"] = item["LawChaos"]["S"]   
     mysfit["species"] = item["Species"]["S"]
     mysfit["description"] = item["Description"]["S"]
     mysfit["thumbImageUri"] = item["ThumbImageUri"]["S"]
