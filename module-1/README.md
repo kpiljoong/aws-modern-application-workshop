@@ -51,7 +51,7 @@ Cloud9 홈페이지에서 **Create Environment**를 클릭합니다:
 환경 이름을 **MythicalMysfitsIDE**로 하고 원하는 설명을 입력한 뒤 **Next Step**를 클릭합니다:
 ![cloud9-name](/images/module-1/cloud9-name-ide.png)
 
-환경 설정은 기본 설정으로 놔두고 **Next Step**를 클릭합니다:
+환경 설정에서 가급적 t3.small (2GiB RAM + 2 vCPU) 이상의 인스턴스 유형을 선택한 뒤 **Next Step**를 클릭합니다:
 ![cloud9-configure](/images/module-1/cloud9-configure-env.png)
 
 **Create Environment**를 클릭합니다:
