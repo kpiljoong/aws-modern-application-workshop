@@ -103,7 +103,7 @@ AWS CDK의 가장 큰 이점 중 하나는 재사용성의 원칙입니다. 애�
 만약 AWS CDK가 설치되어있지 않다면 다음 명령으로 Cloud9 환경에서 AWS CDK를 설치합니다:
 
 ```sh
-npm install -g aws-cdk
+npm install --location=global aws-cdk
 ```
 
 다음 명령을 실행하여 CDK의 버전을 확인합니다:
@@ -146,7 +146,7 @@ cdk init app --language typescript
 `lib` 폴더 안에 `web-application-stack.ts` 이름의 새 파일을 생성한 후, 그리고 다음 코드를 복사하거나 똑같이 작성하여 스켈레톤 클래스 구조를 정의합니다:
 
 ```typescript
-import cdk = require('@aws-cdk/core');
+import * as cdk from 'aws-cdk-lib';
 
 export class WebApplicationStack extends cdk.Stack {
   constructor(app: cdk.App, id: string) {
@@ -162,19 +162,14 @@ export class WebApplicationStack extends cdk.Stack {
 ```typescript
 #!/usr/bin/env node
 import 'source-map-support/register';
-import cdk = require('@aws-cdk/core');
+import * as cdk from 'aws-cdk-lib';
 import { WebApplicationStack } from "../lib/web-application-stack";
 
 const app = new cdk.App();
 new WebApplicationStack(app, "MythicalMysfits-Website");
 ```
 
-이제 필요한 파일이 준비되었으므로, S3와 CloudFront 인프라를 정의합니다. 진행하기 전, 사용할 npm 패키지에 대한 참조를 추가해야합니다. `workshop/cdk/` 디렉토리에서 다음 명령을 실행합니다:
-
-```sh
-npm install --save-dev @types/node @aws-cdk/aws-cloudfront @aws-cdk/aws-iam @aws-cdk/aws-s3 @aws-cdk/aws-s3-deployment
-```
-
+이제 필요한 파일이 준비되었으므로, S3와 CloudFront 인프라를 정의합니다.
 
 ### 웹 애플리케이션 코드 복사
 
@@ -202,10 +197,10 @@ import path = require('path');
 다음으로 필요한 AWS CDK 라이브러리를 import 합니다:
 
 ```typescript
-import s3 = require('@aws-cdk/aws-s3');
-import cloudfront = require('@aws-cdk/aws-cloudfront');
-import iam = require('@aws-cdk/aws-iam');
-import s3deploy = require('@aws-cdk/aws-s3-deployment');
+import * as s3 from 'aws-cdk-lib/aws-s3';
+import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as s3deploy from 'aws-cdk-lib/aws-s3-deployment';
 ```
 
 이제 `web-application-stack.ts` 생성자에서 다음 코드를 작성합니다:
@@ -248,8 +243,6 @@ bucket.grantRead(new iam.CanonicalUserPrincipal(
 
 ```typescript
 const cdn = new cloudfront.CloudFrontWebDistribution(this, "CloudFront", {
-  viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.ALLOW_ALL,
-  priceClass: cloudfront.PriceClass.PRICE_CLASS_ALL,
   originConfigs: [
     {
       behaviors: [
@@ -260,10 +253,10 @@ const cdn = new cloudfront.CloudFrontWebDistribution(this, "CloudFront", {
             cloudfront.CloudFrontAllowedMethods.GET_HEAD_OPTIONS
         }
       ],
-      originPath: `/web`,
       s3OriginSource: {
         s3BucketSource: bucket,
-        originAccessIdentity: origin
+        originAccessIdentity: origin,
+        originPath: `/web`,
       }
     }
   ]
@@ -293,7 +286,7 @@ new s3deploy.BucketDeployment(this, "DeployWebsite", {
 ```typescript
 new cdk.CfnOutput(this, "CloudFrontURL", {
   description: "The CloudFront distribution URL",
-  value: "https://" + cdn.domainName
+  value: "https://" + cdn.distributionDomainName
 });
 ```
 

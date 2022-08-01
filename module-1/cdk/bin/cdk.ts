@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
-import cdk = require('@aws-cdk/core');
+import * as cdk from 'aws-cdk-lib';
 import { WebApplicationStack } from "../lib/web-application-stack";
 
 const app = new cdk.App();
