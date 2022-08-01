@@ -1,29 +1,30 @@
-import cdk = require("@aws-cdk/core");
-import ecr = require("@aws-cdk/aws-ecr");
-import ecs = require("@aws-cdk/aws-ecs");
-import codecommit = require("@aws-cdk/aws-codecommit");
-import codebuild = require("@aws-cdk/aws-codebuild");
-import codepipeline = require("@aws-cdk/aws-codepipeline");
-import actions = require("@aws-cdk/aws-codepipeline-actions");
-import iam = require("@aws-cdk/aws-iam");
+import * as cdk from 'aws-cdk-lib';
+import * as ecr from 'aws-cdk-lib/aws-ecr';
+import * as ecs from 'aws-cdk-lib/aws-ecs';
+import * as codecommit from 'aws-cdk-lib/aws-codecommit';
+import * as codebuild from 'aws-cdk-lib/aws-codebuild';
+import * as codepipeline from 'aws-cdk-lib/aws-codepipeline';
+import * as actions from 'aws-cdk-lib/aws-codepipeline-actions';
+import * as iam from 'aws-cdk-lib/aws-iam';
 
 interface CiCdStackProps extends cdk.StackProps {
   ecrRepository: ecr.Repository;
   ecsService: ecs.FargateService;
 }
-export class CiCdStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id: string, props: CiCdStackProps) {
-    super(scope, id);
 
+export class CiCdStack extends cdk.Stack {
+  constructor(scope: cdk.App, id: string, props: CiCdStackProps) {
+    super(scope, id);
+    
     const backendRepository = new codecommit.Repository(this, "BackendRepository", {
       repositoryName: "MythicalMysfits-BackendRepository"
     });
-
+    
     const codebuildProject = new codebuild.PipelineProject(this, "BuildProject", {
       projectName: "MythicalMysfitsServiceCodeBuildProject",
       environment: {
         computeType: codebuild.ComputeType.SMALL,
-        buildImage: codebuild.LinuxBuildImage.UBUNTU_14_04_PYTHON_3_5_2,
+        buildImage: codebuild.LinuxBuildImage.STANDARD_6_0,
         privileged: true,
         environmentVariables: {
           AWS_ACCOUNT_ID: {
@@ -37,6 +38,7 @@ export class CiCdStack extends cdk.Stack {
         }
       }
     });
+    
     const codeBuildPolicy = new iam.PolicyStatement();
     codeBuildPolicy.addResources(backendRepository.repositoryArn)
     codeBuildPolicy.addActions(
@@ -48,6 +50,7 @@ export class CiCdStack extends cdk.Stack {
     codebuildProject.addToRolePolicy(
       codeBuildPolicy
     );
+    
     props.ecrRepository.grantPullPush(codebuildProject.grantPrincipal);
 
     const sourceOutput = new codepipeline.Artifact();
@@ -58,6 +61,7 @@ export class CiCdStack extends cdk.Stack {
       repository: backendRepository,
       output: sourceOutput
     });
+    
     const buildOutput = new codepipeline.Artifact();
     const buildAction = new actions.CodeBuildAction({
       actionName: "Build",
@@ -67,12 +71,14 @@ export class CiCdStack extends cdk.Stack {
       ],
       project: codebuildProject
     });
+    
     const deployAction = new actions.EcsDeployAction({
       actionName: "DeployAction",
       service: props.ecsService,
-      input: buildOutput
+      input: buildOutput,
+      deploymentTimeout: cdk.Duration.minutes(15)
     });
-
+    
     const pipeline = new codepipeline.Pipeline(this, "Pipeline", {
       pipelineName: "MythicalMysfitsPipeline"
     });
@@ -88,7 +94,7 @@ export class CiCdStack extends cdk.Stack {
       stageName: "Deploy",
       actions: [deployAction]
     });
-
+    
     new cdk.CfnOutput(this, 'BackendRepositoryCloneUrlHttp', {
       description: 'Backend Repository CloneUrl HTTP',
       value: backendRepository.repositoryCloneUrlHttp

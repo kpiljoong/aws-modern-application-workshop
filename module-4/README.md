@@ -40,27 +40,20 @@ touch lib/cognito-stack.ts
 `cognito-stack.ts`파일을 열고 다음 스택 템플릿을 정의합니다:
 
 ```typescript
-import cdk = require("@aws-cdk/core");
+import * as cdk from 'aws-cdk-lib';
 
 export class CognitoStack extends cdk.Stack {
 
-  constructor(scope: cdk.Construct, id: string) {
+  constructor(scope: cdk.App, id: string) {
     super(scope, id);
-
   }
 }
-```
-
-이전과 같이 AWS Cognito 용 CDK NPM 패키지를 설치합니다:
-
-```sh
-npm install --save-dev @aws-cdk/aws-cognito
 ```
 
 파일 맨 위에 AWS Cognito CDK 라이브러리에 대한 import 문을 추가합니다:
 
 ```typescript
-import cognito = require("@aws-cdk/aws-cognito");
+import * as cognito from 'aws-cdk-lib/aws-cognito';
 ```
 
 생성자 구문 바로 앞에 다음 퍼블릭 속성을 정의합니다:
@@ -111,33 +104,34 @@ new cdk.CfnOutput(this, "CognitoUserPoolClient", {
 이걸로 `cognito_stack.ts` 파일은 다음과 같아야합니다:
 
 ```typescript
-import cdk = require("@aws-cdk/core");
-import cognito = require("@aws-cdk/aws-cognito");
+import * as cdk from 'aws-cdk-lib';
+import * as cognito from 'aws-cdk-lib/aws-cognito';
 
 export class CognitoStack extends cdk.Stack {
+
   public readonly userPool: cognito.UserPool;
   public readonly userPoolClient: cognito.UserPoolClient;
-
-  constructor(scope: cdk.Construct, id: string) {
+  
+  constructor(scope: cdk.App, id: string) {
     super(scope, id);
-
+    
     this.userPool = new cognito.UserPool(this, 'UserPool', {
       userPoolName: 'MysfitsUserPool',
       autoVerify: {
         email: true
       }
     });
-
+    
     this.userPoolClient = new cognito.UserPoolClient(this, 'UserPoolClient', {
       userPool: this.userPool,
       userPoolClientName: 'MysfitsUserPoolClient'
     });
-
+    
     new cdk.CfnOutput(this, "CognitoUserPool", {
       description: "The Cognito User Pool",
       value: this.userPool.userPoolId
     });
-
+    
     new cdk.CfnOutput(this, "CognitoUserPoolClient", {
       description: "The Cognito User Pool Client",
       value: this.userPoolClient.userPoolClientId
@@ -164,24 +158,24 @@ const cognito = new CognitoStack(app,  "MythicalMysfits-Cognito");
 
 ```typescript
 #!/usr/bin/env node
-
-import cdk = require("@aws-cdk/core");
 import 'source-map-support/register';
+import * as cdk from 'aws-cdk-lib';
+import { CdkStack } from '../lib/cdk-stack';
 import { WebApplicationStack } from "../lib/web-application-stack";
 import { NetworkStack } from "../lib/network-stack";
 import { EcrStack } from "../lib/ecr-stack";
 import { EcsStack } from "../lib/ecs-stack";
 import { CiCdStack } from "../lib/cicd-stack";
-import { CognitoStack } from '../lib/cognito-stack';
 import { DynamoDbStack } from '../lib/dynamodb-stack';
+import { CognitoStack } from '../lib/cognito-stack';
 
 const app = new cdk.App();
 new WebApplicationStack(app, "MythicalMysfits-Website");
 const networkStack = new NetworkStack(app, "MythicalMysfits-Network");
 const ecrStack = new EcrStack(app, "MythicalMysfits-ECR");
 const ecsStack = new EcsStack(app, "MythicalMysfits-ECS", {
-    vpc: networkStack.vpc,
-    ecrRepository: ecrStack.ecrRepository
+  vpc: networkStack.vpc,
+  ecrRepository: ecrStack.ecrRepository
 });
 new CiCdStack(app, "MythicalMysfits-CICD", {
     ecrRepository: ecrStack.ecrRepository,
@@ -191,13 +185,12 @@ const dynamoDbStack = new DynamoDbStack(app, "MythicalMysfits-DynamoDB", {
     vpc: networkStack.vpc,
     fargateService: ecsStack.ecsService.service
 });
-const cognito = new CognitoStack(app, "MythicalMysfits-Cognito");
+const cognito = new CognitoStack(app,  "MythicalMysfits-Cognito");
 ```
 
 이제 Cognito 리소스를 배포합니다:
 
 ```sh
-npm run build
 cdk deploy MythicalMysfits-Cognito
 ```
 
@@ -226,7 +219,7 @@ touch lib/apigateway-stack.ts
 방금 생성한 파일에서 이전과 같이 스켈레톤 CDK Stack 구조를 정의하고 클래스명을 `APIGatewayStack`으로 지정합니다:
 
 ```typescript
-import cdk = require('@aws-cdk/core');
+import * as cdk from 'aws-cdk-lib';
 
 interface APIGatewayStackProps extends cdk.StackProps {
   loadBalancerDnsName: string;
@@ -235,10 +228,8 @@ interface APIGatewayStackProps extends cdk.StackProps {
 }
 
 export class APIGatewayStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id:string, props: APIGatewayStackProps) {
+  constructor(scope: cdk.App, id:string, props: APIGatewayStackProps) {
     super(scope, id);
-
-    // The code that defines your stack goes here
   }
 }
 ```
@@ -283,20 +274,14 @@ new APIGatewayStack(app, "MythicalMysfits-APIGateway", {
 });
 ```
 
-`workshop/cdk/` 디렉토리에서 다음 명령으로 API Gateway AWS CDK npm 패키지를 설치합니다:
-
-```sh
-npm install --save-dev @aws-cdk/aws-apigateway
-```
-
 `APIGatewayStack.ts`에서, 작성할 코드를 위해 class import를 정의합니다:
 
 ```typescript
-import cdk = require('@aws-cdk/core');
-import apigateway = require('@aws-cdk/aws-apigateway');
-import elbv2 = require('@aws-cdk/aws-elasticloadbalancingv2');
-import fs = require('fs');
-import path = require('path');
+import * as cdk from 'aws-cdk-lib';
+import * as apigateway from 'aws-cdk-lib/aws-apigateway';
+import * as elbv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2';
+import * as fs from 'fs';
+import * as path from 'path';
 ```
 
 이제, `APIGatewayStack` 클래스의 생성자에서 모듈 2에서 생성한 ECS 클러스터로부터 Network Load Balancer를 import 하겠습니다:
@@ -390,6 +375,15 @@ https://REPLACE_ME_WITH_API_ID.execute-api.REPLACE_ME_WITH_REGION.amazonaws.com/
 cp ~/environment/workshop/source/module-4/app/service/* ~/environment/workshop/app/service/
 ```
 
+app/service/mysfitsTableClient.py 파일을 열어 region 부분을 수정합니다.
+
+```python
+region = 'ap-northeast-2'
+client = boto3.client('dynamodb', region_name=region)
+```
+
+변경사항을 push 합니다:
+
 ```sh
 cd ~/environment/workshop/app
 git add .
@@ -413,7 +407,7 @@ Cloud9 IDE에서 `~/environment/workshop/web/index.html` 파일을 열고, 작�
 
 ![before-replace](/images/module-4/before-replace.png)
 
-> **참고:** Cognito UserPool ID와 Cognito UserPool Client ID는 `us-east-1_ab12345YZ`와 `6p3bs000no6a4ue1idruvd05ad` 같은 이전에 저장한 값입니다. 다음 명령을 통해 API Gateway 엔드포인트와 AWS 리전의 값을 얻을 수 있습니다:
+> **참고:** Cognito UserPool ID와 Cognito UserPool Client ID는 `us-east-1_ab12345YZ`와 `6p3bs000no6a4ue1idruvd05ad` 같은 이전에 저장한 값입니다. API Gateway 콘솔에 접속하여 확인할 수 있습니다.
 
 ```sh
 aws apigateway get-rest-apis --query 'items[?name==`MysfitsApi`][id]' --output text
@@ -422,6 +416,9 @@ aws apigateway get-rest-apis --query 'items[?name==`MysfitsApi`][id]' --output t
 ```sh
 aws configure get region
 ```
+
+API Gateway Endpoint는 위 명령을 통해 얻은 API Gateway ID와 Region의 조합입니다: https://{API_GATEWAY_ID}.execute-api.{REGION}.amazonaws.com/prod
+예) https://abcd12345.execute-api.us-east-1.amazonaws.com/prod
 
 Cloud9 IDE에서 `~/environment/workshop/web/register.html` 파일을 열고 작은 따옴표 안의 **REPLACE_ME** 문자열을 위에서 복사한 Cognito UserPool ID와 Cognito UserPool Client ID 값으로 바꾸고 파일을 저장합니다. `~/environment/workshop/web/confirm.html` 파일에 대해서도 동일한 과정을 반복합니다.
 

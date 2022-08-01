@@ -49,10 +49,10 @@ touch lib/network-stack.ts
 생성한 파일에서 스켈레톤 CDK 스택 구조를 정의하고 `NetworkStack`으로 클래스명을 지정합니다:
 
 ```typescript
-import cdk = require('@aws-cdk/core');
+import * as cdk from 'aws-cdk-lib';
 
 export class NetworkStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id:string) {
+  constructor(scope: cdk.App, id:string) {
     super(scope, id);
 
     // The code that defines your stack goes here
@@ -65,7 +65,8 @@ export class NetworkStack extends cdk.Stack {
 ```typescript
 #!/usr/bin/env node
 import 'source-map-support/register';
-import cdk = require('@aws-cdk/core');
+import * as cdk from 'aws-cdk-lib';
+import { CdkStack } from '../lib/cdk-stack';
 import { WebApplicationStack } from "../lib/web-application-stack";
 import { NetworkStack } from "../lib/network-stack";
 
@@ -76,23 +77,18 @@ const networkStack = new NetworkStack(app, "MythicalMysfits-Network");
 
 이제 AWS CDK를 사용하여 VPC를 정의합니다. 다시 한번 강조드리자면, AWS CDK는 높은 수준의 추상화를 제공하여 AWS 구성 요소 및 서비스를 쉽게 구현할 수 있도록 합니다. 한번 확인해보겠습니다.
 
-먼저, Amazon EC2와 AWS IAM 용 CDK NPM 패키지를 설치합니다:
-
-```sh
-npm install --save-dev @aws-cdk/aws-ec2 @aws-cdk/aws-iam
-```
-
 `network-stack.ts` 파일에서 다음 VPC 컨스트럭츠를 정의합니다:
 
 ```typescript
 import cdk = require('@aws-cdk/core');
+
 import ec2 = require("@aws-cdk/aws-ec2");
 import iam = require("@aws-cdk/aws-iam");
 
 export class NetworkStack extends cdk.Stack {
   public readonly vpc: ec2.Vpc;
 
-  constructor(scope: cdk.Construct, id:string) {
+  constructor(scope: cdk.App, id:string) {
     super(scope, id);
 
     this.vpc = new ec2.Vpc(this, "VPC");
@@ -161,10 +157,10 @@ cp -R ~/environment/workshop/source/module-2/app ~/environment/workshop
 
 준비되어있는 Dockerfile로 Docker 이미지를 생성합니다:
 
-* `~/environment/workshop/source/module-2/app`로 이동합니다.
+* `~/environment/workshop/app`으로 이동합니다.
 
 ```
-cd ~/environment/workshop/source/module-2/app
+cd ~/environment/workshop/app
 ```
 
 ```sh
@@ -216,13 +212,12 @@ touch lib/ecr-stack.ts
 이전과 마찬가지로 CDK 스택의 스켈레톤 구조를 정의합니다:
 
 ```typescript
-import cdk = require('@aws-cdk/core');
+import * as cdk from 'aws-cdk-lib';
 
 export class EcrStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id: string) {
+  constructor(scope: cdk.App, id: string) {
     super(scope, id);
 
-    // The code that defines your stack goes here
   }
 }
 ```
@@ -231,9 +226,9 @@ export class EcrStack extends cdk.Stack {
 
 ```typescript
 #!/usr/bin/env node
-
-import cdk = require('@aws-cdk/core');
-import "source-map-support/register";
+import 'source-map-support/register';
+import * as cdk from 'aws-cdk-lib';
+import { CdkStack } from '../lib/cdk-stack';
 import { WebApplicationStack } from "../lib/web-application-stack";
 import { NetworkStack } from "../lib/network-stack";
 import { EcrStack } from "../lib/ecr-stack";
@@ -244,18 +239,12 @@ const networkStack = new NetworkStack(app, "MythicalMysfits-Network");
 const ecrStack = new EcrStack(app, "MythicalMysfits-ECR");
 ```
 
-다음으로 Amazon ECR CDK NPM 패키지를 설치해야합니다:
-
-```sh
-npm install --save-dev @aws-cdk/aws-ecr
-```
-
-그런 다음 다음과 같이 ECR 리포지토리 정의를 EcrStack에 추가합니다:
+그런 다음 ECR 리포지토리 정의를 EcrStack에 추가합니다.
 
 다음 import 구문을 첫줄의 `import cdk` 구문 다음에 추가합니다:
 
 ```typescript
-import ecr = require("@aws-cdk/aws-ecr");
+import * as ecr from 'aws-cdk-lib/aws-ecr';
 ```
 
 EcrStack을 다음처럼 작성합니다:
@@ -264,7 +253,7 @@ EcrStack을 다음처럼 작성합니다:
 export class EcrStack extends cdk.Stack {
   public readonly ecrRepository: ecr.Repository;
 
-  constructor(scope: cdk.Construct, id: string) {
+  constructor(scope: cdk.App, id: string) {
     super(scope, id);
     this.ecrRepository = new ecr.Repository(this, "Repository", {
       repositoryName: "mythicalmysfits/service"
@@ -309,11 +298,7 @@ aws ecr describe-images --repository-name mythicalmysfits/service
 
 먼저 **Amazon Elastic Container Service (ECS)**에서 **Cluster**를 생성할 것 입니다. **Cluster**는 서비스 컨테이너가 배포될 "서버" 클러스터를 나타냅니다. 서버가 "인용문" 내에 있는 이유는 **AWS Fargate**를 사용하기 때문입니다. Fargate를 사용하면 서버를 실제로 프로비저닝하거나 관리할 필요 없이 컨테이너를 클러스터에 배포할 수 있습니다.
 
-이제 ECS 인스턴스를 정의합니다. 정의하기 이전에 아래 명령으로 AWS ECS CDK NPM 패키지를 설치합니다:
-
-```sh
-npm install --save-dev @aws-cdk/aws-ecs @aws-cdk/aws-ecs-patterns
-```
+이제 ECS 인스턴스를 정의합니다.
 
 이전과 마찬가지로 `lib` 폴더에 `ecs-stack.ts`이라는 파일을 생성합니다:
 
@@ -324,13 +309,12 @@ touch lib/ecs-stack.ts
 CDK 스택의 스켈레톤 구조를 정의합니다:
 
 ```typescript
-import cdk = require('@aws-cdk/core');
+import * as cdk from 'aws-cdk-lib';
 
 export class EcsStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id: string) {
+  constructor(scope: cdk.App, id: string) {
     super(scope, id);
 
-    // The code that defines your stack goes here
   }
 }
 ```
@@ -340,8 +324,8 @@ export class EcsStack extends cdk.Stack {
 `EcsStack` 정의 위에, 다음 모듈을 import 합니다:
 
 ```typescript
-import ec2 = require('@aws-cdk/aws-ec2');
-import ecr = require('@aws-cdk/aws-ecr');
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
+import * as ecr from 'aws-cdk-lib/aws-ecr';
 ```
 
 그리고 EcsStack 정의 위에 다음 속성 객체를 정의합니다:
@@ -356,15 +340,15 @@ interface EcsStackProps extends cdk.StackProps {
 정의한 속성 객체를 EcsStack의 생성자에서 인자로 받도록 합니다:
 
 ```typescript
-  constructor(scope: cdk.Construct, id: string, props: EcsStackProps) {
+  constructor(scope: cdk.App, id: string, props: EcsStackProps) {
 ```
 
 EcsStack에서 필요한 나머지 AWS CDK 모듈을 import 합니다:
 
 ```typescript
-import ecs = require("@aws-cdk/aws-ecs");
-import ecsPatterns = require("@aws-cdk/aws-ecs-patterns");
-import iam = require("@aws-cdk/aws-iam");
+import * as ecs from 'aws-cdk-lib/aws-ecs';
+import * as ecsPatterns from 'aws-cdk-lib/aws-ecs-patterns';
+import * as iam from 'aws-cdk-lib/aws-iam';
 ```
 
 이후 워크샵에서 생성할 다른 스택에서 사용될 수 있도록 ecsCluster와 ecsService를 노출(expose)해야 합니다. 이를 위해 EcsStack 상단에 두개의 속성을 정의합니다:
@@ -374,7 +358,7 @@ export class EcsStack extends cdk.Stack {
   public readonly ecsCluster: ecs.Cluster;
   public readonly ecsService: ecsPatterns.NetworkLoadBalancedFargateService;
 
-  constructor(scope: cdk.Construct, id: string, props: EcsStackProps) {
+  constructor(scope: cdk.App, id: string, props: EcsStackProps) {
     super(scope, id);
 ```
 
@@ -515,7 +499,7 @@ curl http://<replace-with-your-nlb-address>/mysfits
 
 이전에 도커 컨테이너를 로컬에서 테스트할 때 본 JSON 응답과 동일한 응답을 볼 수 있으며, 이를통해 Python 웹 API가 AWS Fargate에서 정상적으로 동작하고 있다는 걸 확인할 수 있습니다.
 
-> **참고:** 최초 접속 시 시간이 소요될 수 있습니다.
+> **참고:** 최초 접속 시 시간이 소요될 수 있습니다. 너무 오래 걸릴 경우 취소 (Ctrl-d) 후 다시 해보시길 바랍니다.
 
 > **참고:** Network Load Balancer는 SSL/TLS 인증서가 설치되어 있지 않으므로 HTTP (http://) 요청만 지원합니다. 이 워크샵에서는 http:// 으로만 요청을 보내야 합니다. https:// 요청은 정상적으로 동작하지 않을 것입니다.
 
@@ -544,7 +528,7 @@ S3에서 호스팅되는 웹사이트를 업데이트하기 위해 `MythicalMysf
 cdk deploy MythicalMysfits-Website
 ```
 
-업데이트된 신비한 미스핏츠 웹사이트를 확인하기 위해 모듈 1 마지막에 출력하게끔 한 CloudFront URL을 사용하여 웹사이트에 접속합니다 (HTTP으로 접속하여야 합니다). AWS Fargate에 배포된 도커 컨테이너에서 동작하는 Flask API로부터 JSON 데이터를 받습니다.
+업데이트된 신비한 미스핏츠 웹사이트를 확인하기 위해 모듈 1 마지막에 출력하게끔 한 CloudFront URL을 사용하여 웹사이트에 접속합니다 (HTTP로 접속하여야 합니다). AWS Fargate에 배포된 도커 컨테이너에서 동작하는 Flask API로부터 JSON 데이터를 받습니다.
 
 
 ## 모듈 2b: AWS Code 서비스를 사용한 배포 자동화
@@ -557,29 +541,21 @@ cdk deploy MythicalMysfits-Website
 
 ### 백엔드 서비스를 위한 CodeCommit 리포지토리 생성
 
-먼저 AWS CodeCommit CDK NPM 패키지를 설치합니다:
-
-```sh
-cd ~/environment/workshop/cdk
-npm install --save-dev @aws-cdk/aws-codecommit
-```
-
 이전처럼 `lib` 폴더에 `cicd-stack.ts` 파일을 생성합니다:
 
 ```sh
+cd ~/environment/workshop/cdk
 touch lib/cicd-stack.ts
 ```
 
 CDK 스택의 스켈레톤 구조를 정의합니다:
 
 ```typescript
-import cdk = require('@aws-cdk/core');
+import * as cdk from 'aws-cdk-lib';
 
 export class CiCdStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id: string) {
+  constructor(scope: cdk.App, id: string) {
     super(scope, id);
-
-    // The code that defines your stack goes here
   }
 }
 ```
@@ -589,8 +565,8 @@ export class CiCdStack extends cdk.Stack {
 CiCdStack정의 위에 다음 모듈을 import 합니다:
 
 ```typescript
-import ecr = require("@aws-cdk/aws-ecr");
-import ecs = require("@aws-cdk/aws-ecs");
+import * as ecr from 'aws-cdk-lib/aws-ecr';
+import * as ecs from 'aws-cdk-lib/aws-ecs';
 ```
 
 다음 속성 객체를 정의합니다:
@@ -605,16 +581,16 @@ interface CiCdStackProps extends cdk.StackProps {
 CiCdStack 생성자를 변경하여 정의한 속성 객체를 입력 받도록 합니다:
 
 ```typescript
-  constructor(scope: cdk.Construct, id: string, props: CiCdStackProps) {
+  constructor(scope: cdk.App, id: string, props: CiCdStackProps) {
 ```
 
 `bin/cdk.ts` 파일에 레퍼런스를 업데이트합니다. 다음 코드를 작성합니다:
 
 ```typescript
 #!/usr/bin/env node
-
-import cdk = require("@aws-cdk/core");
 import 'source-map-support/register';
+import * as cdk from 'aws-cdk-lib';
+import { CdkStack } from '../lib/cdk-stack';
 import { WebApplicationStack } from "../lib/web-application-stack";
 import { NetworkStack } from "../lib/network-stack";
 import { EcrStack } from "../lib/ecr-stack";
@@ -626,8 +602,8 @@ new WebApplicationStack(app, "MythicalMysfits-Website");
 const networkStack = new NetworkStack(app, "MythicalMysfits-Network");
 const ecrStack = new EcrStack(app, "MythicalMysfits-ECR");
 const ecsStack = new EcsStack(app, "MythicalMysfits-ECS", {
-    vpc: networkStack.vpc,
-    ecrRepository: ecrStack.ecrRepository
+  vpc: networkStack.vpc,
+  ecrRepository: ecrStack.ecrRepository
 });
 new CiCdStack(app, "MythicalMysfits-CICD", {
     ecrRepository: ecrStack.ecrRepository,
@@ -638,7 +614,7 @@ new CiCdStack(app, "MythicalMysfits-CICD", {
 이제 `cicd-stack.ts` 파일에 import 문을 추가합니다:
 
 ```typescript
-import codecommit = require('@aws-cdk/aws-codecommit');
+import * as codecommit from 'aws-cdk-lib/aws-codecommit';
 ```
 
 AWS CodeCommit 리포지토리를 위한 정의를 추가해보겠습니다. AWS CDK는 CloudFormation 템플릿의 구현을 단순화하고 생성하려는 리소스를 세부적으로 제어할 수 있는 고수준 추상화의 종합적인 묶음들로 구성됩니다.
@@ -654,23 +630,24 @@ const backendRepository = new codecommit.Repository(this, "BackendRepository", {
 생성된 CloudFormation 템플릿으로 `cdk.CfnOutput` 컨스트럭츠를 정의하는 사용자 지정 출력(Output) 속성을 정의하여 생성된 CodeCommit 리포지토리의 클론 URL을 제공하도록 할 수 있습니다. 아래와 같이 리포지토리의 HTTP와 SSH 클론 URL을 `cdk.CfnOutput`로 정의합니다. 완료 후 파일은 다음과 같이 보일 것입니다:
 
 ```typescript
-import cdk = require("@aws-cdk/core");
-import ecr = require("@aws-cdk/aws-ecr");
-import ecs = require("@aws-cdk/aws-ecs");
-import codecommit = require("@aws-cdk/aws-codecommit");
+import * as cdk from 'aws-cdk-lib';
+import * as ecr from 'aws-cdk-lib/aws-ecr';
+import * as ecs from 'aws-cdk-lib/aws-ecs';
+import * as codecommit from 'aws-cdk-lib/aws-codecommit';
 
 interface CiCdStackProps extends cdk.StackProps {
   ecrRepository: ecr.Repository;
   ecsService: ecs.FargateService;
 }
-export class CiCdStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id: string, props: CiCdStackProps) {
-    super(scope, id);
 
+export class CiCdStack extends cdk.Stack {
+  constructor(scope: cdk.App, id: string, props: CiCdStackProps) {
+    super(scope, id);
+    
     const backendRepository = new codecommit.Repository(this, "BackendRepository", {
       repositoryName: "MythicalMysfits-BackendRepository"
     });
-
+    
     new cdk.CfnOutput(this, 'BackendRepositoryCloneUrlHttp', {
       description: 'Backend Repository CloneUrl HTTP',
       value: backendRepository.repositoryCloneUrlHttp
@@ -686,19 +663,13 @@ export class CiCdStack extends cdk.Stack {
 
 ### CI/CD 파이프라인 생성
 
-AWS CodeBuild와 AWS CodePipeline CDK NPM 패키지를 설치하기 위해 `workshop/cdk` 디렉토리에서 다음 명령을 실행합니다:
-
-```sh
-npm install --save-dev @aws-cdk/aws-codebuild  @aws-cdk/aws-codepipeline  @aws-cdk/aws-codepipeline-actions
-```
-
 `cicd-stack.ts` 파일에 필요한 라이브러리를 import 하는 구문을 추가합니다:
 
 ```typescript
-import codebuild = require('@aws-cdk/aws-codebuild');
-import codepipeline = require('@aws-cdk/aws-codepipeline');
-import actions = require('@aws-cdk/aws-codepipeline-actions');
-import iam = require('@aws-cdk/aws-iam');
+import * as codebuild from 'aws-cdk-lib/aws-codebuild';
+import * as codepipeilne from 'aws-cdk-lib/aws-codepipeline';
+import * as actions from 'aws-cdk-lib/aws-codepipeline-actions';
+import * as iam from 'aws-cdk-lib/aws-iam';
 ```
 
 `CiCdStack` 파일에 CodeBuild 프로젝트를 정의하여 Python Flask 웹앱을 빌드하는 다음 코드를 추가합니다:
@@ -708,7 +679,7 @@ const codebuildProject = new codebuild.PipelineProject(this, "BuildProject", {
   projectName: "MythicalMysfitsServiceCodeBuildProject",
   environment: {
     computeType: codebuild.ComputeType.SMALL,
-    buildImage: codebuild.LinuxBuildImage.UBUNTU_14_04_PYTHON_3_5_2,
+    buildImage: codebuild.LinuxBuildImage.STANDARD_6_0,
     privileged: true,
     environmentVariables: {
       AWS_ACCOUNT_ID: {
@@ -806,32 +777,33 @@ pipeline.addStage({
 `cicd-stack.ts` 파일은 다음과 같이 보일 것입니다:
 
 ```typescript
-import cdk = require("@aws-cdk/core");
-import ecr = require("@aws-cdk/aws-ecr");
-import ecs = require("@aws-cdk/aws-ecs");
-import codecommit = require("@aws-cdk/aws-codecommit");
-import codebuild = require("@aws-cdk/aws-codebuild");
-import codepipeline = require("@aws-cdk/aws-codepipeline");
-import actions = require("@aws-cdk/aws-codepipeline-actions");
-import iam = require("@aws-cdk/aws-iam");
+import * as cdk from 'aws-cdk-lib';
+import * as ecr from 'aws-cdk-lib/aws-ecr';
+import * as ecs from 'aws-cdk-lib/aws-ecs';
+import * as codecommit from 'aws-cdk-lib/aws-codecommit';
+import * as codebuild from 'aws-cdk-lib/aws-codebuild';
+import * as codepipeline from 'aws-cdk-lib/aws-codepipeline';
+import * as actions from 'aws-cdk-lib/aws-codepipeline-actions';
+import * as iam from 'aws-cdk-lib/aws-iam';
 
 interface CiCdStackProps extends cdk.StackProps {
   ecrRepository: ecr.Repository;
   ecsService: ecs.FargateService;
 }
-export class CiCdStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id: string, props: CiCdStackProps) {
-    super(scope, id);
 
+export class CiCdStack extends cdk.Stack {
+  constructor(scope: cdk.App, id: string, props: CiCdStackProps) {
+    super(scope, id);
+    
     const backendRepository = new codecommit.Repository(this, "BackendRepository", {
       repositoryName: "MythicalMysfits-BackendRepository"
     });
-
+    
     const codebuildProject = new codebuild.PipelineProject(this, "BuildProject", {
       projectName: "MythicalMysfitsServiceCodeBuildProject",
       environment: {
         computeType: codebuild.ComputeType.SMALL,
-        buildImage: codebuild.LinuxBuildImage.UBUNTU_14_04_PYTHON_3_5_2,
+        buildImage: codebuild.LinuxBuildImage.STANDARD_6_0,
         privileged: true,
         environmentVariables: {
           AWS_ACCOUNT_ID: {
@@ -845,6 +817,7 @@ export class CiCdStack extends cdk.Stack {
         }
       }
     });
+    
     const codeBuildPolicy = new iam.PolicyStatement();
     codeBuildPolicy.addResources(backendRepository.repositoryArn)
     codeBuildPolicy.addActions(
@@ -856,16 +829,18 @@ export class CiCdStack extends cdk.Stack {
     codebuildProject.addToRolePolicy(
       codeBuildPolicy
     );
+    
     props.ecrRepository.grantPullPush(codebuildProject.grantPrincipal);
 
     const sourceOutput = new codepipeline.Artifact();
     const sourceAction = new actions.CodeCommitSourceAction({
       actionName: "CodeCommit-Source",
       branch: "master",
-      trigger: actions.CodeCommitTrigger.POLL,
+      trigger: actions.CodeCommitTrigger.EVENTS,
       repository: backendRepository,
       output: sourceOutput
     });
+    
     const buildOutput = new codepipeline.Artifact();
     const buildAction = new actions.CodeBuildAction({
       actionName: "Build",
@@ -875,12 +850,13 @@ export class CiCdStack extends cdk.Stack {
       ],
       project: codebuildProject
     });
+    
     const deployAction = new actions.EcsDeployAction({
       actionName: "DeployAction",
       service: props.ecsService,
       input: buildOutput
     });
-
+    
     const pipeline = new codepipeline.Pipeline(this, "Pipeline", {
       pipelineName: "MythicalMysfitsPipeline"
     });
@@ -896,7 +872,7 @@ export class CiCdStack extends cdk.Stack {
       stageName: "Deploy",
       actions: [deployAction]
     });
-
+    
     new cdk.CfnOutput(this, 'BackendRepositoryCloneUrlHttp', {
       description: 'Backend Repository CloneUrl HTTP',
       value: backendRepository.repositoryCloneUrlHttp

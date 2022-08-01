@@ -33,13 +33,11 @@ touch lib/dynamodb-stack.ts
 방금 생성한 파일에 이전에 했던 것 처럼 스켈레톤 CDK 스택 구조를 정의합니다. 이번에는 클래스명을 `DynamoDbStack`이라고 지정합니다:
 
 ```typescript
-import cdk = require('@aws-cdk/core');
+import * as cdk from 'aws-cdk-lib';
 
 export class DynamoDbStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id:string) {
+  constructor(scope: cdk.App, id: string) {
     super(scope, id);
-
-    // The code that defines your stack goes here
   }
 }
 ```
@@ -48,9 +46,9 @@ export class DynamoDbStack extends cdk.Stack {
 
 ```typescript
 #!/usr/bin/env node
-
-import cdk = require("@aws-cdk/core");
 import 'source-map-support/register';
+import * as cdk from 'aws-cdk-lib';
+import { CdkStack } from '../lib/cdk-stack';
 import { WebApplicationStack } from "../lib/web-application-stack";
 import { NetworkStack } from "../lib/network-stack";
 import { EcrStack } from "../lib/ecr-stack";
@@ -63,8 +61,8 @@ new WebApplicationStack(app, "MythicalMysfits-Website");
 const networkStack = new NetworkStack(app, "MythicalMysfits-Network");
 const ecrStack = new EcrStack(app, "MythicalMysfits-ECR");
 const ecsStack = new EcsStack(app, "MythicalMysfits-ECS", {
-    vpc: networkStack.vpc,
-    ecrRepository: ecrStack.ecrRepository
+  vpc: networkStack.vpc,
+  ecrRepository: ecrStack.ecrRepository
 });
 new CiCdStack(app, "MythicalMysfits-CICD", {
     ecrRepository: ecrStack.ecrRepository,
@@ -76,20 +74,14 @@ const dynamoDbStack = new DynamoDbStack(app, "MythicalMysfits-DynamoDB", {
 });
 ```
 
-이전에 했던 것 처럼 AWS DynamoDB CDK NPM 패키지를 설치해야 합니다:
-
-```sh
-npm install --save-dev @aws-cdk/aws-dynamodb
-```
-
 `dynamodb-stack.ts`파일 안에 필요한 모듈을 import 합니다:
 
 ```typescript
-import cdk = require("@aws-cdk/core");
-import dynamodb = require("@aws-cdk/aws-dynamodb");
-import iam = require("@aws-cdk/aws-iam");
-import ec2 = require("@aws-cdk/aws-ec2");
-import ecs = require("@aws-cdk/aws-ecs");
+import * as cdk from 'aws-cdk-lib';
+import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
+import * as ecs from 'aws-cdk-lib/aws-ecs';
 ```
 
 다음 속성 인터페이스를 정의하여 스택이 의존하는 Constructs를 정의합니다:
@@ -104,7 +96,7 @@ interface DynamoDbStackProps extends cdk.StackProps {
 이제 속성 객체를 인자로 받도록 DBStack의 생성자를 변경합니다:
 
 ```typescript
-  constructor(scope: cdk.Construct, id: string, props: DynamoDbStackProps) {
+  constructor(scope: cdk.App, id: string, props: DynamoDbStackProps) {
 ```
 
 다음으로 트래픽이 VPC와 DynamoDB 데이터베이스간에 안전하게 이동할 수 있도록 VPC 엔드포인트를 정의합니다:
@@ -113,7 +105,7 @@ interface DynamoDbStackProps extends cdk.StackProps {
 const dynamoDbEndpoint = props.vpc.addGatewayEndpoint("DynamoDbEndpoint", {
   service: ec2.GatewayVpcEndpointAwsService.DYNAMODB,
   subnets: [{
-      subnetType: ec2.SubnetType.PRIVATE
+      subnetType: ec2.SubnetType.PRIVATE_ISOLATED
   }]
 });
 
@@ -200,7 +192,6 @@ props.fargateService.taskDefinition.addToTaskRolePolicy(
 완료 후 DynamoDB 테이블을 배포합니다:
 
 ```sh
-npm run build
 cdk deploy MythicalMysfits-ECS MythicalMysfits-DynamoDB
 ```
 
@@ -250,6 +241,13 @@ aws dynamodb scan --table-name MysfitsTable
 
 ```sh
 cp ~/environment/workshop/source/module-3/app/service/* ~/environment/workshop/app/service/
+```
+
+app/service/mysfitsTableClient.py 파일을 열어 region 부분을 수정합니다.
+
+```python
+region = 'ap-northeast-2'
+client = boto3.client('dynamodb', region_name=region)
 ```
 
 #### 업데이트 된 코드를 CI/CD 파이프라인으로 푸시

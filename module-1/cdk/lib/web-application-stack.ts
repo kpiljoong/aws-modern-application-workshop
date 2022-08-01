@@ -53,6 +53,7 @@ export class WebApplicationStack extends cdk.Stack {
       destinationKeyPrefix: "web/",
       destinationBucket: bucket,
       distribution: cdn,
+      distributionPaths: ['/*'],
       retainOnDelete: false
     });
     

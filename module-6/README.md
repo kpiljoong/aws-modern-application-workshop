@@ -42,35 +42,28 @@ touch lib/xray-stack.ts
 방금 생성한 파일 내에서 이전에 한 것처럼 스켈레톤 CDK 스택 구조를 정의합니다. 클래스명은 `XRayStack`로 합니다:
 
 ```typescript
-import cdk = require('@aws-cdk/core');
+import * as cdk from 'aws-cdk-lib';
 
 export class XRayStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id:string) {
-    super(scope, id);
-    // The code that defines your stack goes here
+  constructor(app: cdk.App, id: string) {
+    super(app, id);
   }
 }
-```
-
-Lambda 용 AWS CDK NPM 패키지는 X-Ray 추적에 대한 지원이 이미 포함되어 있습니다. SNS와 Lambda 용 AWS CDK NPM 패키지를 설치합니다:
-
-```sh
-npm install --save-dev @aws-cdk/aws-sns @aws-cdk/aws-sns-subscriptions @aws-cdk/aws-lambda-event-sources
 ```
 
 작성할 코드를 위한 라이브러리들을 import 합니다:
 
 ```typescript
-import cdk = require('@aws-cdk/core');
-import codecommit = require("@aws-cdk/aws-codecommit");
-import apigw = require("@aws-cdk/aws-apigateway");
-import iam = require("@aws-cdk/aws-iam");
-import dynamodb = require("@aws-cdk/aws-dynamodb");
-import { ServicePrincipal } from "@aws-cdk/aws-iam";
-import lambda = require("@aws-cdk/aws-lambda");
-import event = require("@aws-cdk/aws-lambda-event-sources");
-import sns = require('@aws-cdk/aws-sns');
-import subs = require('@aws-cdk/aws-sns-subscriptions');
+import * as cdk from 'aws-cdk-lib';
+import * as codecommit from "aws-cdk-lib/aws-codecommit";
+import * as apigw from "aws-cdk-lib/aws-apigateway";
+import * as iam from "aws-cdk-lib/aws-iam";
+import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
+import { ServicePrincipal } from "aws-cdk-lib/aws-iam";
+import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as event from "aws-cdk-lib/aws-lambda-event-sources";
+import * as sns from 'aws-cdk-lib/aws-sns';
+import * as subs from 'aws-cdk-lib/aws-sns-subscriptions';
 ```
 
 `XRayStack` 생성자 내에서 작성할 Lambda 코드에 사용할 CodeCommit 리포지토리를 추가합니다:
@@ -96,7 +89,8 @@ new cdk.CfnOutput(this, "questionsRepositoryCloneUrlSsh", {
 ```typescript
 #!/usr/bin/env node
 import 'source-map-support/register';
-import cdk = require('@aws-cdk/core');
+import * as cdk from 'aws-cdk-lib';
+import { CdkStack } from '../lib/cdk-stack';
 import { WebApplicationStack } from "../lib/web-application-stack";
 import { NetworkStack } from "../lib/network-stack";
 import { EcrStack } from "../lib/ecr-stack";
@@ -113,8 +107,8 @@ new WebApplicationStack(app, "MythicalMysfits-Website");
 const networkStack = new NetworkStack(app, "MythicalMysfits-Network");
 const ecrStack = new EcrStack(app, "MythicalMysfits-ECR");
 const ecsStack = new EcsStack(app, "MythicalMysfits-ECS", {
-    vpc: networkStack.vpc,
-    ecrRepository: ecrStack.ecrRepository
+  vpc: networkStack.vpc,
+  ecrRepository: ecrStack.ecrRepository
 });
 new CiCdStack(app, "MythicalMysfits-CICD", {
     ecrRepository: ecrStack.ecrRepository,
@@ -207,7 +201,7 @@ const mysfitsPostQuestion = new lambda.Function(this, "PostQuestionFunction", {
   description: "A microservice Lambda function that receives a new question submitted to the MythicalMysfits" +
                   " website from a user and inserts it into a DynamoDB database table.",
   memorySize: 128,
-  code: lambda.Code.asset("../../lambda-questions/PostQuestionsService"),
+  code: lambda.Code.fromAsset("../../lambda-questions/PostQuestionsService"),
   timeout: cdk.Duration.seconds(30),
   initialPolicy: [
     postQuestionLambdaFunctionPolicyStmDDB,
@@ -232,7 +226,7 @@ const mysfitsProcessQuestionStream = new lambda.Function(this, "ProcessQuestionS
   description: "An AWS Lambda function that will process all new questions posted to mythical mysfits" +
                   " and notify the site administrator of the question that was asked.",
   memorySize: 128,
-  code: lambda.Code.asset("../../lambda-questions/ProcessQuestionsStream"),
+  code: lambda.Code.fromAsset("../../lambda-questions/ProcessQuestionsStream"),
   timeout: cdk.Duration.seconds(30),
   initialPolicy: [
     postQuestionLambdaFunctionPolicyStmSNS,
@@ -282,9 +276,6 @@ const questionsIntegration = new apigw.LambdaIntegration(
 
 const api = new apigw.LambdaRestApi(this, "APIEndpoint", {
   handler: mysfitsPostQuestion,
-  options: {
-    restApiName: "Questions API Service"
-  },
   proxy: false
 });
 
@@ -322,7 +313,7 @@ questionsMethod.addMethod('OPTIONS', new apigw.MockIntegration({
   }]
 });
 ```
-> **참고:** 위 코드에서 "REPLACE@EMAIL_ADDRESS"를 접근 가능한 유효한 이메일 주소로 바꾸십시오. 이 값이 사용자 질문이 SNS 주제를 통하여 게시될 이메일 주소가 됩니다.
+> **참고:** 위 코드에서 "REPLACE@EMAIL_ADDRESS"를 접근 가능한 유효한 이메일 주소로 변경하세요. 이 값이 사용자 질문이 SNS 주제를 통하여 게시될 이메일 주소가 됩니다.
 
 마지막으로 CDK 애플리케이션을 배포합니다:
 
@@ -376,13 +367,10 @@ X-Ray 콘솔을 방문하면 **service map**을 확인할 수 있습니다. 이�
 ```typescript
 const api = new apigw.LambdaRestApi(this, "APIEndpoint", {
   handler: mysfitsPostQuestion,
-  options: {
-    restApiName: "Questions API Service",
-    deployOptions: {
-      tracingEnabled: true
-    }
-  },
-  proxy: false
+  proxy: false,
+  deployOptions: {
+    tracingEnabled: true
+  }
 });
 ```
 
@@ -408,7 +396,6 @@ AWS CDK를 사용하여 이러한 기능의 첫번째 배포를 이미 완료했
 이러한 변경을 수행한 후, 다음 두 명령을 실행하여 Lambda 함수 코드에 대한 업데이트를 배포합니다:
 
 ```sh
-npm run build
 cdk deploy MythicalMysfits-XRay
 ```
 
@@ -430,7 +417,6 @@ cdk deploy MythicalMysfits-XRay
 필요한 코드를 변경하고 `mysfitsPostQuestion.py` 파일을 저장한 후, 변경 사항을 배포하기 전에 이전과 동일한 명령을 실행합니다:
 
 ```sh
-npm run build
 cdk deploy MythicalMysfits-XRay
 ```
 

@@ -46,34 +46,27 @@ touch lib/kinesis-firehose-stack.ts
 방금 만든 파일 내에서 이전에 수행한 것 처럼 스켈레톤 CDK 스택 구조를 정의하며 클래스명을 `KinesisFirehoseStack`으로 지정합니다:
 
 ```typescript
-import cdk = require('@aws-cdk/core');
+import * as cdk from 'aws-cdk-lib';
 
 export class KinesisFirehoseStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id:string) {
-    super(scope, id);
-    // The code that defines your stack goes here
+  constructor(app: cdk.App, id: string) {
+    super(app, id);
   }
 }
-```
-
-`workshop/cdk/` 디렉토리에서 다음 명령을 실행하여 Kinesis Firehose 용 AWS CDK NP 패키지를 설치합니다:
-
-```sh
-npm install --save-dev @aws-cdk/aws-kinesisfirehose
 ```
 
 작성할 코드를 위한 클래스 import 문을 정의합니다:
 
 ```typescript
-import cdk = require('@aws-cdk/core');
-import codecommit = require("@aws-cdk/aws-codecommit");
-import apigw = require("@aws-cdk/aws-apigateway");
-import iam = require("@aws-cdk/aws-iam");
-import dynamodb = require("@aws-cdk/aws-dynamodb");
-import { ServicePrincipal } from "@aws-cdk/aws-iam";
-import { CfnDeliveryStream } from "@aws-cdk/aws-kinesisfirehose";
-import lambda = require("@aws-cdk/aws-lambda");
-import s3 = require("@aws-cdk/aws-s3");
+import * as cdk from 'aws-cdk-lib';
+import * as codecommit from 'aws-cdk-lib/aws-codecommit';
+import * as apigw from 'aws-cdk-lib/aws-apigateway';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as s3 from 'aws-cdk-lib/aws-s3';
+import { ServicePrincipal }from 'aws-cdk-lib/aws-iam';
+import { CfnDeliveryStream }from 'aws-cdk-lib/aws-kinesisfirehose';
 ```
 
 KinesisFirehoseStack에 필요한 속성을 정의하는 인터페이스를 정의합니다:
@@ -87,7 +80,7 @@ interface KinesisFirehoseStackProps extends cdk.StackProps {
 속성 객체가 필요하도록 KinesisFirehoseStack의 생성자를 변경합니다:
 
 ```typescript
-  constructor(scope: cdk.Construct, id: string, props: KinesisFirehoseStackProps) {
+  constructor(app: cdk.App, id: string, props: KinesisFirehoseStackProps) {
 ```
 
 `KinesisFirehoseStack` 생성자에서, 우리가 작성할 Kinesis Firehose와 Lambda 코드에 사용할 CodeCommit 리포지토리를 추가합니다:
@@ -113,7 +106,8 @@ new cdk.CfnOutput(this, "kinesisRepositoryCloneUrlSsh", {
 ```typescript
 #!/usr/bin/env node
 import 'source-map-support/register';
-import cdk = require('@aws-cdk/core');
+import * as cdk from 'aws-cdk-lib';
+import { CdkStack } from '../lib/cdk-stack';
 import { WebApplicationStack } from "../lib/web-application-stack";
 import { NetworkStack } from "../lib/network-stack";
 import { EcrStack } from "../lib/ecr-stack";
@@ -129,8 +123,8 @@ new WebApplicationStack(app, "MythicalMysfits-Website");
 const networkStack = new NetworkStack(app, "MythicalMysfits-Network");
 const ecrStack = new EcrStack(app, "MythicalMysfits-ECR");
 const ecsStack = new EcsStack(app, "MythicalMysfits-ECS", {
-    vpc: networkStack.vpc,
-    ecrRepository: ecrStack.ecrRepository
+  vpc: networkStack.vpc,
+  ecrRepository: ecrStack.ecrRepository
 });
 new CiCdStack(app, "MythicalMysfits-CICD", {
     ecrRepository: ecrStack.ecrRepository,
@@ -227,7 +221,7 @@ const mysfitsClicksProcessor = new lambda.Function(this, "Function", {
   description: "An Amazon Kinesis Firehose stream processor that enriches click records" +
     " to not just include a mysfitId, but also other attributes that can be analyzed later.",
   memorySize: 128,
-  code: lambda.Code.asset("../../lambda-streaming-processor"),
+  code: lambda.Code.fromAsset("../../lambda-streaming-processor"),
   timeout: cdk.Duration.seconds(30),
   initialPolicy: [
     lambdaFunctionPolicy
@@ -240,7 +234,7 @@ const mysfitsClicksProcessor = new lambda.Function(this, "Function", {
 const firehoseDeliveryRole = new iam.Role(this, "FirehoseDeliveryRole", {
   roleName: "FirehoseDeliveryRole",
   assumedBy: new ServicePrincipal("firehose.amazonaws.com"),
-  externalId: cdk.Aws.ACCOUNT_ID
+  externalIds: [cdk.Aws.ACCOUNT_ID]
 });
 
 const firehoseDeliveryPolicyS3Stm = new iam.PolicyStatement();
@@ -427,7 +421,6 @@ cp -r ~/environment/workshop/source/module-5/web/* ~/environment/workshop/web
 이제 S3 호스팅 웹사이트를 업데이트하고 `MythicalMysfits-Website` 스택을 배포합니다:
 
 ```sh
-npm run build
 cdk deploy MythicalMysfits-Website
 ```
 

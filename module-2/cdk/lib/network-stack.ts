@@ -1,17 +1,17 @@
-import cdk = require("@aws-cdk/core");
-import ec2 = require("@aws-cdk/aws-ec2");
-import iam = require("@aws-cdk/aws-iam");
+import * as cdk from 'aws-cdk-lib';
+
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
+import * as iam from 'aws-cdk-lib/aws-iam';
 
 export class NetworkStack extends cdk.Stack {
   public readonly vpc: ec2.Vpc;
-
-  constructor(scope: cdk.Construct, id: string) {
+  
+  constructor(scope: cdk.App, id:string) {
     super(scope, id);
 
     this.vpc = new ec2.Vpc(this, "VPC", {
-      natGateways: 2,
-      maxAzs: 2
+        natGateways: 1,
+        maxAzs: 2
     });
-
   }
 }

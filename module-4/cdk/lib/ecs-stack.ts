@@ -1,18 +1,19 @@
-import cdk = require("@aws-cdk/core");
-import ec2 = require("@aws-cdk/aws-ec2");
-import ecr = require("@aws-cdk/aws-ecr");
-import ecs = require("@aws-cdk/aws-ecs");
-import iam = require("@aws-cdk/aws-iam");
-import ecsPatterns = require("@aws-cdk/aws-ecs-patterns");
+import * as cdk from 'aws-cdk-lib';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
+import * as ecr from 'aws-cdk-lib/aws-ecr';
+import * as ecs from 'aws-cdk-lib/aws-ecs';
+import * as ecsPatterns from 'aws-cdk-lib/aws-ecs-patterns';
+import * as iam from 'aws-cdk-lib/aws-iam';
 
 interface EcsStackProps extends cdk.StackProps {
-  vpc: ec2.Vpc;
-  ecrRepository: ecr.Repository;
+    vpc: ec2.Vpc,
+    ecrRepository: ecr.Repository
 }
+
 export class EcsStack extends cdk.Stack {
   public readonly ecsCluster: ecs.Cluster;
   public readonly ecsService: ecsPatterns.NetworkLoadBalancedFargateService;
-
+  
   constructor(scope: cdk.App, id: string, props: EcsStackProps) {
     super(scope, id);
 
@@ -21,8 +22,7 @@ export class EcsStack extends cdk.Stack {
       vpc: props.vpc
     });
     this.ecsCluster.connections.allowFromAnyIpv4(ec2.Port.tcp(8080));
-
-    // Instantiate Amazon ECS Service with an automatic load balancer
+    
     this.ecsService = new ecsPatterns.NetworkLoadBalancedFargateService(this, "Service", {
       cluster: this.ecsCluster,
       desiredCount: 1,
@@ -35,7 +35,7 @@ export class EcsStack extends cdk.Stack {
       }
     });
     this.ecsService.service.connections.allowFrom(ec2.Peer.ipv4(props.vpc.vpcCidrBlock),ec2.Port.tcp(8080));
-
+    
     const taskDefinitionPolicy = new iam.PolicyStatement();
     taskDefinitionPolicy.addActions(
       // Rules which allow ECS to attach network interfaces to instances
@@ -47,7 +47,7 @@ export class EcsStack extends cdk.Stack {
       "ec2:DeleteNetworkInterfacePermission",
       "ec2:Describe*",
       "ec2:DetachNetworkInterface",
-
+    
       // Rules which allow ECS to update load balancers on your behalf
       //  with the information sabout how to send traffic to your containers
       "elasticloadbalancing:DeregisterInstancesFromLoadBalancer",
@@ -55,19 +55,19 @@ export class EcsStack extends cdk.Stack {
       "elasticloadbalancing:Describe*",
       "elasticloadbalancing:RegisterInstancesWithLoadBalancer",
       "elasticloadbalancing:RegisterTargets",
-
+    
       //  Rules which allow ECS to run tasks that have IAM roles assigned to them.
       "iam:PassRole",
-
+    
       //  Rules that let ECS create and push logs to CloudWatch.
       "logs:DescribeLogStreams",
       "logs:CreateLogGroup");
     taskDefinitionPolicy.addAllResources();
-
+    
     this.ecsService.service.taskDefinition.addToExecutionRolePolicy(
       taskDefinitionPolicy
     );
-
+    
     const taskRolePolicy =  new iam.PolicyStatement();
     taskRolePolicy.addActions(
       // Allow the ECS Tasks to download images from ECR
@@ -81,9 +81,9 @@ export class EcsStack extends cdk.Stack {
       "logs:PutLogEvents"
     );
     taskRolePolicy.addAllResources();
-
+    
     this.ecsService.service.taskDefinition.addToTaskRolePolicy(
-     taskRolePolicy
+      taskRolePolicy
     );
   }
 }

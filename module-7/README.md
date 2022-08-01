@@ -48,32 +48,25 @@ touch lib/sagemaker-stack.ts
 방금 생성한 파일에서 이전과 같이 스켈레톤 CDK Stack 구조를 정의하고 클래스명을 `SageMakerStack`으로 지정합니다:
 
 ```typescript
-import cdk = require('@aws-cdk/core');
+import * as cdk from 'aws-cdk-lib';
 
 export class SageMakerStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id:string) {
-    super(scope, id);
-    // The code that defines your stack goes here
+  constructor(app: cdk.App, id: string) {
+    super(app, id);
   }
 }
-```
-
-다음으로 SageMaker AWS CDK NPM 패키지를 설치합니다:
-
-```sh
-npm install --save-dev @aws-cdk/aws-sagemaker
 ```
 
 코드에서 사용할 모듈을 import합니다:
 
 ```typescript
-import cdk = require('@aws-cdk/core');
-import iam = require("@aws-cdk/aws-iam");
-import { ServicePrincipal } from "@aws-cdk/aws-iam";
-import sagemaker = require("@aws-cdk/aws-sagemaker");
-import codecommit = require("@aws-cdk/aws-codecommit");
-import apigw = require("@aws-cdk/aws-apigateway");
-import lambda = require("@aws-cdk/aws-lambda");
+import * as cdk from 'aws-cdk-lib';
+import * as iam from "aws-cdk-lib/aws-iam";
+import { ServicePrincipal } from "aws-cdk-lib/aws-iam";
+import * as sagemaker from "aws-cdk-lib/aws-sagemaker";
+import * as codecommit from "aws-cdk-lib/aws-codecommit";
+import * as apigw from "aws-cdk-lib/aws-apigateway";
+import * as lambda from "aws-cdk-lib/aws-lambda";
 ```
 
 `SageMakerStack` 생성자에서, IAM 역할과 노트북 인스턴스를 추가하고, 나중에 사용할 CodeCommit 리포지토리도 추가합니다:
@@ -144,7 +137,8 @@ new cdk.CfnOutput(this, "recommendationsRepositoryCloneUrlSsh", {
 ```typescript
 #!/usr/bin/env node
 import 'source-map-support/register';
-import cdk = require('@aws-cdk/core');
+import * as cdk from 'aws-cdk-lib';
+import { CdkStack } from '../lib/cdk-stack';
 import { WebApplicationStack } from "../lib/web-application-stack";
 import { NetworkStack } from "../lib/network-stack";
 import { EcrStack } from "../lib/ecr-stack";
@@ -162,8 +156,8 @@ new WebApplicationStack(app, "MythicalMysfits-Website");
 const networkStack = new NetworkStack(app, "MythicalMysfits-Network");
 const ecrStack = new EcrStack(app, "MythicalMysfits-ECR");
 const ecsStack = new EcsStack(app, "MythicalMysfits-ECS", {
-    vpc: networkStack.vpc,
-    ecrRepository: ecrStack.ecrRepository
+  vpc: networkStack.vpc,
+  ecrRepository: ecrStack.ecrRepository
 });
 new CiCdStack(app, "MythicalMysfits-CICD", {
     ecrRepository: ecrStack.ecrRepository,
@@ -196,7 +190,7 @@ cdk deploy MythicalMysfits-SageMaker
 
 명령의 결과물 중 이후 과정에서 필요한 `"Repository Clone Url HTTP"` 값을 기록해둡니다. 해당 값은 다음과 같은 형식입니다: `https://git-codecommit.REPLACE_ME_REGION.amazonaws.com/v1/repos/MythicalMysfits-RecommendationsLambdaRepository`.
 
-복제한 리포지토리 안에 이후 과정에서 사용할 다운로드가 필요한 파일이 있습니다. Cloud9의 파일 탐색기(File Explorer)에서 `~environment/workshop/source/module-7/sagemaker/mysfit_recommendations_knn.ipynb` 파일을 찾고, 마우스 오른쪽 버튼 클릭을 한 후 다운로드(Download)를 누릅니다. 파일을 로컬 디렉토리에 저장하신 후 이후 사용하기 위해 위치를 기억해둡니다.
+복제한 리포지토리 안에 이후 과정에서 사용할 다운로드가 필요한 파일이 있습니다. Cloud9의 파일 탐색기(File Explorer)에서 `~/environment/workshop/source/module-7/sagemaker/mysfit_recommendations_knn.ipynb` 파일을 찾고, 마우스 오른쪽 버튼 클릭을 한 후 다운로드(Download)를 누릅니다. 파일을 로컬 디렉토리에 저장하신 후 이후 사용하기 위해 위치를 기억해둡니다.
 
 ### Amazon SageMaker 사용
 
@@ -254,7 +248,7 @@ cd ~/environment/lambda-recommendations/
 cp -r ~/environment/workshop/source/module-7/app/* .
 ```
 
-API를 배포하기 전 서비스 Python 코드에 변경해야하는 코드가 있습니다. Cloud9에서 `~/environment/lambda-recommendations/service/recommendation.py` 파일을 열면, 교체해야하는 한 줄(`REPLACE_ME_SAGEMAKER_ENDPOINT`)이 보일 것 입니다.
+API를 배포하기 전 서비스 Python 코드에 변경해야하는 코드가 있습니다. Cloud9에서 `~/environment/lambda-recommendations/service/recommendation.py` 파일을 열면, 교체해야하는 한 줄(`REPLACE_ME_SAGEMAKER_ENDPOINT_NAME`)이 보일 것 입니다.
 
 필요한 값을 얻기 위해 다음 CLI 명령을 실행하여 SageMaker 엔드포인트를 읽어옵니다:
 

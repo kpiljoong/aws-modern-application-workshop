@@ -1,22 +1,32 @@
-import cdk = require('@aws-cdk/core');
-import codecommit = require("@aws-cdk/aws-codecommit");
-import apigw = require("@aws-cdk/aws-apigateway");
-import iam = require("@aws-cdk/aws-iam");
-import dynamodb = require("@aws-cdk/aws-dynamodb");
-import { ServicePrincipal } from "@aws-cdk/aws-iam";
-import lambda = require("@aws-cdk/aws-lambda");
-import event = require("@aws-cdk/aws-lambda-event-sources");
-import sns = require('@aws-cdk/aws-sns');
-import subs = require('@aws-cdk/aws-sns-subscriptions');
+import * as cdk from 'aws-cdk-lib';
+import * as codecommit from "aws-cdk-lib/aws-codecommit";
+import * as apigw from "aws-cdk-lib/aws-apigateway";
+import * as iam from "aws-cdk-lib/aws-iam";
+import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
+import { ServicePrincipal } from "aws-cdk-lib/aws-iam";
+import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as event from "aws-cdk-lib/aws-lambda-event-sources";
+import * as sns from 'aws-cdk-lib/aws-sns';
+import * as subs from 'aws-cdk-lib/aws-sns-subscriptions';
 
 export class XRayStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id:string) {
-    super(scope, id);
-
+  constructor(app: cdk.App, id: string) {
+    super(app, id);
+    
     const lambdaRepository = new codecommit.Repository(this, "QuestionsLambdaRepository", {
       repositoryName: "MythicalMysfits-QuestionsLambdaRepository"
     });
-
+    
+    new cdk.CfnOutput(this, "questionsRepositoryCloneUrlHttp", {
+      value: lambdaRepository.repositoryCloneUrlHttp,
+      description: "Questions Lambda Repository Clone Url HTTP"
+    });
+    
+    new cdk.CfnOutput(this, "questionsRepositoryCloneUrlSsh", {
+      value: lambdaRepository.repositoryCloneUrlSsh,
+      description: "Questions Lambda Repository Clone Url SSH"
+    });
+    
     const table = new dynamodb.Table(this, "Table", {
       tableName: "MysfitsQuestionsTable",
       partitionKey: {
@@ -25,11 +35,11 @@ export class XRayStack extends cdk.Stack {
       },
       stream: dynamodb.StreamViewType.NEW_IMAGE
     });
-
+    
     const postQuestionLambdaFunctionPolicyStmDDB =  new iam.PolicyStatement();
     postQuestionLambdaFunctionPolicyStmDDB.addActions("dynamodb:PutItem");
     postQuestionLambdaFunctionPolicyStmDDB.addResources(table.tableArn);
-
+    
     const LambdaFunctionPolicyStmXRay =  new iam.PolicyStatement();
     LambdaFunctionPolicyStmXRay.addActions(
           //  Allows the Lambda function to interact with X-Ray
@@ -40,14 +50,14 @@ export class XRayStack extends cdk.Stack {
           "xray:GetSamplingStatisticSummaries"
         );
     LambdaFunctionPolicyStmXRay.addAllResources();
-
+    
     const mysfitsPostQuestion = new lambda.Function(this, "PostQuestionFunction", {
       handler: "mysfitsPostQuestion.postQuestion",
       runtime: lambda.Runtime.PYTHON_3_6,
       description: "A microservice Lambda function that receives a new question submitted to the MythicalMysfits" +
                       " website from a user and inserts it into a DynamoDB database table.",
       memorySize: 128,
-      code: lambda.Code.asset("../../lambda-questions/PostQuestionsService"),
+      code: lambda.Code.fromAsset("../../lambda-questions/PostQuestionsService"),
       timeout: cdk.Duration.seconds(30),
       initialPolicy: [
         postQuestionLambdaFunctionPolicyStmDDB,
@@ -55,24 +65,24 @@ export class XRayStack extends cdk.Stack {
       ],
       tracing: lambda.Tracing.ACTIVE
     });
-
+    
     const topic = new sns.Topic(this, 'Topic', {
         displayName: 'MythicalMysfitsQuestionsTopic',
         topicName: 'MythicalMysfitsQuestionsTopic'
     });
-    topic.addSubscription(new subs.EmailSubscription("REPLACE@EMAIL_ADDRESS"));
-
+    topic.addSubscription(new subs.EmailSubscription("kpiljoong@gmail.com"));
+    
     const postQuestionLambdaFunctionPolicyStmSNS =  new iam.PolicyStatement();
     postQuestionLambdaFunctionPolicyStmSNS.addActions("sns:Publish");
     postQuestionLambdaFunctionPolicyStmSNS.addResources(topic.topicArn);
-
+    
     const mysfitsProcessQuestionStream = new lambda.Function(this, "ProcessQuestionStreamFunction", {
       handler: "mysfitsProcessStream.processStream",
       runtime: lambda.Runtime.PYTHON_3_6,
       description: "An AWS Lambda function that will process all new questions posted to mythical mysfits" +
                       " and notify the site administrator of the question that was asked.",
       memorySize: 128,
-      code: lambda.Code.asset("../../lambda-questions/ProcessQuestionsStream"),
+      code: lambda.Code.fromAsset("../../lambda-questions/ProcessQuestionsStream"),
       timeout: cdk.Duration.seconds(30),
       initialPolicy: [
         postQuestionLambdaFunctionPolicyStmSNS,
@@ -89,11 +99,11 @@ export class XRayStack extends cdk.Stack {
         })
       ]
     });
-
+    
     const questionsApiRole = new iam.Role(this, "QuestionsApiRole", {
       assumedBy: new ServicePrincipal("apigateway.amazonaws.com")
     });
-
+    
     const apiPolicy = new iam.PolicyStatement();
     apiPolicy.addActions("lambda:InvokeFunction");
     apiPolicy.addResources(mysfitsPostQuestion.functionArn);
@@ -104,7 +114,7 @@ export class XRayStack extends cdk.Stack {
       ],
       roles: [questionsApiRole]
     });
-
+    
     const questionsIntegration = new apigw.LambdaIntegration(
       mysfitsPostQuestion,
       {
@@ -119,31 +129,23 @@ export class XRayStack extends cdk.Stack {
         ]
       }
     );
-
+    
     const api = new apigw.LambdaRestApi(this, "APIEndpoint", {
       handler: mysfitsPostQuestion,
-      options: {
-        restApiName: "Questions API Service",
-        deployOptions: {
-          tracingEnabled: true
-        }
-      },
-      proxy: false
+      proxy: false,
+      deployOptions: {
+        tracingEnabled: true
+      }
     });
-
+    
     const questionsMethod = api.root.addResource("questions");
     questionsMethod.addMethod("POST", questionsIntegration, {
       methodResponses: [{
-        statusCode: "200",
-        responseParameters: {
-          'method.response.header.Access-Control-Allow-Headers': true,
-          'method.response.header.Access-Control-Allow-Methods': true,
-          'method.response.header.Access-Control-Allow-Origin': true,
-        },
+        statusCode: "200"
       }],
       authorizationType: apigw.AuthorizationType.NONE
     });
-
+    
     questionsMethod.addMethod('OPTIONS', new apigw.MockIntegration({
       integrationResponses: [{
         statusCode: '200',
@@ -166,18 +168,8 @@ export class XRayStack extends cdk.Stack {
           'method.response.header.Access-Control-Allow-Methods': true,
           'method.response.header.Access-Control-Allow-Credentials': true,
           'method.response.header.Access-Control-Allow-Origin': true,
-        },
+        },  
       }]
-    });
-
-    new cdk.CfnOutput(this, "questionsRepositoryCloneUrlHttp", {
-      value: lambdaRepository.repositoryCloneUrlHttp,
-      description: "Questions Lambda Repository Clone Url HTTP"
-    });
-
-    new cdk.CfnOutput(this, "questionsRepositoryCloneUrlSsh", {
-      value: lambdaRepository.repositoryCloneUrlSsh,
-      description: "Questions Lambda Repository Clone Url SSH"
     });
   }
 }

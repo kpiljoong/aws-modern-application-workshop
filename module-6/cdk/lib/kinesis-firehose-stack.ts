@@ -1,23 +1,33 @@
-import cdk = require('@aws-cdk/core');
-import codecommit = require("@aws-cdk/aws-codecommit");
-import apigw = require("@aws-cdk/aws-apigateway");
-import iam = require("@aws-cdk/aws-iam");
-import dynamodb = require("@aws-cdk/aws-dynamodb");
-import { ServicePrincipal } from "@aws-cdk/aws-iam";
-import { CfnDeliveryStream } from "@aws-cdk/aws-kinesisfirehose";
-import lambda = require("@aws-cdk/aws-lambda");
-import s3 = require("@aws-cdk/aws-s3");
+import * as cdk from 'aws-cdk-lib';
+import * as codecommit from 'aws-cdk-lib/aws-codecommit';
+import * as apigw from 'aws-cdk-lib/aws-apigateway';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as s3 from 'aws-cdk-lib/aws-s3';
+import { ServicePrincipal }from 'aws-cdk-lib/aws-iam';
+import { CfnDeliveryStream }from 'aws-cdk-lib/aws-kinesisfirehose';
 
 interface KinesisFirehoseStackProps extends cdk.StackProps {
   table: dynamodb.Table;
 }
 
 export class KinesisFirehoseStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id:string, props: KinesisFirehoseStackProps) {
-    super(scope, id);
+  constructor(app: cdk.App, id: string, props: KinesisFirehoseStackProps) {
+    super(app, id);
     
     const lambdaRepository = new codecommit.Repository(this, "ClicksProcessingLambdaRepository", {
       repositoryName: "MythicalMysfits-ClicksProcessingLambdaRepository"
+    });
+    
+    new cdk.CfnOutput(this, "kinesisRepositoryCloneUrlHttp", {
+      value: lambdaRepository.repositoryCloneUrlHttp,
+      description: "Clicks Processing Lambda Repository Clone Url HTTP"
+    });
+    
+    new cdk.CfnOutput(this, "kinesisRepositoryCloneUrlSsh", {
+      value: lambdaRepository.repositoryCloneUrlSsh,
+      description: "Clicks Processing Lambda Repository Clone Url SSH"
     });
     
     const clicksDestinationBucket = new s3.Bucket(this, "Bucket", {
@@ -34,22 +44,22 @@ export class KinesisFirehoseStack extends cdk.Stack {
       description: "An Amazon Kinesis Firehose stream processor that enriches click records" +
         " to not just include a mysfitId, but also other attributes that can be analyzed later.",
       memorySize: 128,
-      code: lambda.Code.asset("../../lambda-streaming-processor"),
+      code: lambda.Code.fromAsset("../../lambda-streaming-processor"),
       timeout: cdk.Duration.seconds(30),
       initialPolicy: [
         lambdaFunctionPolicy
       ],
       environment: {
-        MYSFITS_API_URL: "REPLACE_ME_API_URL" 
+        MYSFITS_API_URL: "https://mprcl8p2t9.execute-api.ap-northeast-2.amazonaws.com/prod/"
       }
     });
     
     const firehoseDeliveryRole = new iam.Role(this, "FirehoseDeliveryRole", {
       roleName: "FirehoseDeliveryRole",
       assumedBy: new ServicePrincipal("firehose.amazonaws.com"),
-      externalId: cdk.Aws.ACCOUNT_ID
+      externalIds: [cdk.Aws.ACCOUNT_ID]
     });
-
+    
     const firehoseDeliveryPolicyS3Stm = new iam.PolicyStatement();
     firehoseDeliveryPolicyS3Stm.addActions("s3:AbortMultipartUpload",
           "s3:GetBucketLocation",
@@ -163,7 +173,7 @@ export class KinesisFirehoseStack extends cdk.Stack {
           }
         ]
       }
-    ); 
+    );
     
     clicks.addMethod("OPTIONS", new apigw.MockIntegration({
       integrationResponses: [{
@@ -196,15 +206,5 @@ export class KinesisFirehoseStack extends cdk.Stack {
         ]
       }
     );
-    
-    new cdk.CfnOutput(this, "kinesisRepositoryCloneUrlHttp", {
-      value: lambdaRepository.repositoryCloneUrlHttp,
-      description: "Clicks Processing Lambda Repository Clone Url HTTP"
-    });
-    
-    new cdk.CfnOutput(this, "kinesisRepositoryCloneUrlSsh", {
-      value: lambdaRepository.repositoryCloneUrlSsh,
-      description: "Clicks Processing Lambda Repository Clone Url SSH"
-    });
   }
 }
