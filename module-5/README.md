@@ -217,7 +217,7 @@ lambdaFunctionPolicy.addResources(props.table.tableArn);
 
 const mysfitsClicksProcessor = new lambda.Function(this, "Function", {
   handler: "streamProcessor.processRecord",
-  runtime: lambda.Runtime.PYTHON_3_6,
+  runtime: lambda.Runtime.PYTHON_3_9,
   description: "An Amazon Kinesis Firehose stream processor that enriches click records" +
     " to not just include a mysfitId, but also other attributes that can be analyzed later.",
   memorySize: 128,

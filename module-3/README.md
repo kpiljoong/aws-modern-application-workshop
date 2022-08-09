@@ -103,10 +103,7 @@ interface DynamoDbStackProps extends cdk.StackProps {
 
 ```typescript
 const dynamoDbEndpoint = props.vpc.addGatewayEndpoint("DynamoDbEndpoint", {
-  service: ec2.GatewayVpcEndpointAwsService.DYNAMODB,
-  subnets: [{
-      subnetType: ec2.SubnetType.PRIVATE_ISOLATED
-  }]
+  service: ec2.GatewayVpcEndpointAwsService.DYNAMODB
 });
 
 const dynamoDbPolicy = new iam.PolicyStatement();

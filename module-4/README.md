@@ -68,6 +68,7 @@ public readonly userPoolClient: cognito.UserPoolClient;
 ```typescript
 this.userPool = new cognito.UserPool(this, 'UserPool', {
   userPoolName: 'MysfitsUserPool',
+  selfSignUpEnabled: true,
   autoVerify: {
     email: true
   }

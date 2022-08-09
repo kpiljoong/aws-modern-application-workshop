@@ -667,7 +667,7 @@ export class CiCdStack extends cdk.Stack {
 
 ```typescript
 import * as codebuild from 'aws-cdk-lib/aws-codebuild';
-import * as codepipeilne from 'aws-cdk-lib/aws-codepipeline';
+import * as codepipelne from 'aws-cdk-lib/aws-codepipeline';
 import * as actions from 'aws-cdk-lib/aws-codepipeline-actions';
 import * as iam from 'aws-cdk-lib/aws-iam';
 ```

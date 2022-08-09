@@ -25,7 +25,7 @@ S3와 CloudFront의 조합은 정적 웹 콘텐츠(html, js, css, 미디어 등)
 
 시작하기 위해 워크샵에서 사용할 계정으로 [AWS Console](https://console.aws.amazon.com)에 로그인합니다.
 
-This web application can be deployed in any AWS region that supports all the services used in this application. The supported regions include:
+워크샵에서 사용하는 AWS 서비스가 이용 가능한 모든 리전에 배포할 수 있습니다. 아래 리전은 확인된 배포 가능한 리전입니다:
 
 * us-east-1 (N. Virginia)
 * us-east-2 (Ohio)
@@ -117,7 +117,7 @@ cdk --version
 `workshop` 폴더에서 AWS CDK 애플리케이션을 포함할 새로운 폴더를 생성합니다:
 
 ```sh
-mkdir cdk && cd cdk/
+mkdir ~/environment/workshop/cdk && cd ~/environment/workshop/cdk/
 ```
 
 `cdk` 폴더에서 CDK 앱을 초기화합니다. 이 앱은 현재 지원하는 다음의 프로그래밍 언어 중 선택할 수 있습니다: csharp (C#), java (Java), python (Python), typescript (TypeScript). TEMPLATE은 선택한 언어로 앱을 초기화할 때 생성되는 기본 앱과는 다른 앱을 생성할 때 사용할 수 있는 선택적인 템플릿입니다.
@@ -275,6 +275,7 @@ new s3deploy.BucketDeployment(this, "DeployWebsite", {
   destinationKeyPrefix: "web/",
   destinationBucket: bucket,
   distribution: cdn,
+  distributionPaths: ['/*'],
   retainOnDelete: false
 });
 ```
