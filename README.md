@@ -28,6 +28,8 @@
 
 ## 현대 애플리케이션 워크샵 시작
 
+아래 모듈 1 진행을 눌러 실습을 진행해주세요!
+
 ### [모듈 1 진행](/module-1)
 
 
@@ -39,6 +41,11 @@ AWS CDK를 사용하여 리소스를 프로비저닝한 경우, 생성된 CloudF
 ```
 cdk destroy
 ```
+
+실습을 통해 생성되는 리소스 중 일부 리소스는 cdk에 의해 제거가 되지 않을 수 있습니다. 대표적으로 아래 리소스들은 삭제가 되었는지 확인해보시고, 만약 삭제가되지 않았다면 직접 삭제를 해주시기 바랍니다:
+
+* Amazon ECR: mythicalmysfits/service	
+* Amazon DynamoDB: MysfitsTable, MysfitsQuestionsTable
 
 신비한 미스핏츠 워크샵에서 생성 및 사용한 모든 리소스의 제거를 아래의 AWS 콘솔에 접근하셔서 확인하기 바랍니다:
 * [AWS Kinesis](https://console.aws.amazon.com/kinesis/home)

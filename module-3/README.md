@@ -48,7 +48,6 @@ export class DynamoDbStack extends cdk.Stack {
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
-import { CdkStack } from '../lib/cdk-stack';
 import { WebApplicationStack } from "../lib/web-application-stack";
 import { NetworkStack } from "../lib/network-stack";
 import { EcrStack } from "../lib/ecr-stack";
@@ -240,7 +239,7 @@ aws dynamodb scan --table-name MysfitsTable
 cp ~/environment/workshop/source/module-3/app/service/* ~/environment/workshop/app/service/
 ```
 
-app/service/mysfitsTableClient.py 파일을 열어 region 부분을 수정합니다.
+app/service/mysfitsTableClient.py 파일을 열어 region 부분 변경이 필요하다면 수정합니다.
 
 ```python
 region = 'ap-northeast-2'
@@ -274,9 +273,10 @@ NLB를 가르키도록 엔드포인트를 교체한 후 S3 호스팅 웹사이�
 
 ```sh
 cd ~/environment/workshop/cdk/
-npm run build
 cdk deploy MythicalMysfits-Website
 ```
+
+> **참고:** Mysfits 이미지를 볼 수 없다면 [브라우저 설정에서 *mixed content 또는 안전하지 않은 콘텐츠*를 허용해주세요](https://docs.adobe.com/content/help/en/target/using/experiences/vec/troubleshoot-composer/mixed-content.html).
 
 신비한 미스핏츠 웹사이트를 다시 방문하여 DynamoDB 테이블에서 로드되는 새 Mysfits와 Filter 기능이 어떻게 작동하는 확인할 수 있습니다.
 

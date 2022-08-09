@@ -100,16 +100,16 @@ AWS CDK의 가장 큰 이점 중 하나는 재사용성의 원칙입니다. 애�
 
 #### AWS CDK 설치
 
-만약 AWS CDK가 설치되어있지 않다면 다음 명령으로 Cloud9 환경에서 AWS CDK를 설치합니다:
-
-```sh
-npm install --location=global aws-cdk
-```
-
 다음 명령을 실행하여 CDK의 버전을 확인합니다:
 
 ```sh
 cdk --version
+```
+
+만약 AWS CDK가 설치되어있지 않다면 다음 명령으로 Cloud9 환경에서 AWS CDK를 설치합니다:
+
+```sh
+npm install --location=global aws-cdk
 ```
 
 #### CDK App 폴더 초기화
@@ -120,7 +120,7 @@ cdk --version
 mkdir ~/environment/workshop/cdk && cd ~/environment/workshop/cdk/
 ```
 
-`cdk` 폴더에서 CDK 앱을 초기화합니다. 이 앱은 현재 지원하는 다음의 프로그래밍 언어 중 선택할 수 있습니다: csharp (C#), java (Java), python (Python), typescript (TypeScript). TEMPLATE은 선택한 언어로 앱을 초기화할 때 생성되는 기본 앱과는 다른 앱을 생성할 때 사용할 수 있는 선택적인 템플릿입니다.
+`cdk` 폴더에서 CDK 앱을 초기화합니다. 이 앱은 현재 지원하는 다음의 프로그래밍 언어 중 선택할 수 있습니다: csharp (C#), fsharp(F#), go (Go), java (Java), javascript (JavaScript), python (Python), typescript (TypeScript). TEMPLATE은 선택한 언어로 앱을 초기화할 때 생성되는 기본 앱과는 다른 앱을 생성할 때 사용할 수 있는 선택적인 템플릿입니다.
 
 `cdk init app --language LANGUAGE`
 
@@ -144,6 +144,11 @@ cdk init app --language typescript
 이제 웹사이트 호스팅에 필요한 인프라를 정의해봅니다. 
 
 `lib` 폴더 안에 `web-application-stack.ts` 이름의 새 파일을 생성한 후, 그리고 다음 코드를 복사하거나 똑같이 작성하여 스켈레톤 클래스 구조를 정의합니다:
+
+```sh
+cd ~/environment/workshop/cdk
+touch lib/web-application-stack.ts
+```
 
 ```typescript
 import * as cdk from 'aws-cdk-lib';
@@ -297,6 +302,11 @@ new cdk.CfnOutput(this, "CloudFrontURL", {
 
 `workshop/cdk/` 폴더에서 `cdk synth MythicalMysfits-Website`를 실행하여 지금까지 작성한 코드 기반의 CloudFormation 템플릿을 출력합니다.
 
+```sh
+cd ~/environment/workshop/cdk
+cdk synth MythicalMysfits-Website
+```
+
 ### 웹사이트와 인프라 배포
 
 콘텐츠를 S3 환경에 배포하는 AWS CDK 앱을 처음 배포할 때는 "bootstrap stack"을 설치해야 합니다. 이 기능은 CDK 툴킷 작동에 필요한 리소스를 생성합니다. 현재의 bootstrap 명령은 Amazon S3 버킷만 생성합니다:
@@ -335,6 +345,8 @@ cdk deploy MythicalMysfits-Website
 ![mysfits-welcome](/images/module-1/mysfits-welcome.png)
 
 > **참고:** Mysfits 이미지를 볼 수 없다면 [브라우저 설정에서 *mixed content*를 허용해주세요](https://docs.adobe.com/content/help/en/target/using/experiences/vec/troubleshoot-composer/mixed-content.html).
+
+> **참고:** 배포에 시간이 걸립니다. 새로운 터미널을 생성하여, 모듈 2를 진행하셔도 됩니다. 다만, 모듈 2에서의 cdk deploy를 통한 배포는, 현재 모듈의 배포가 완료된 뒤 진행하시기 바랍니다.
 
 축하합니다! 기본적인 정적 신비한 미스핏츠 웹사이트를 만들었습니다!
 

@@ -161,7 +161,6 @@ const cognito = new CognitoStack(app,  "MythicalMysfits-Cognito");
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
-import { CdkStack } from '../lib/cdk-stack';
 import { WebApplicationStack } from "../lib/web-application-stack";
 import { NetworkStack } from "../lib/network-stack";
 import { EcrStack } from "../lib/ecr-stack";
@@ -376,7 +375,7 @@ https://REPLACE_ME_WITH_API_ID.execute-api.REPLACE_ME_WITH_REGION.amazonaws.com/
 cp ~/environment/workshop/source/module-4/app/service/* ~/environment/workshop/app/service/
 ```
 
-app/service/mysfitsTableClient.py 파일을 열어 region 부분을 수정합니다.
+app/service/mysfitsTableClient.py 파일을 열어 region 변경이 필요하다면 수정합니다.
 
 ```python
 region = 'ap-northeast-2'

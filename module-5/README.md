@@ -107,7 +107,6 @@ new cdk.CfnOutput(this, "kinesisRepositoryCloneUrlSsh", {
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
-import { CdkStack } from '../lib/cdk-stack';
 import { WebApplicationStack } from "../lib/web-application-stack";
 import { NetworkStack } from "../lib/network-stack";
 import { EcrStack } from "../lib/ecr-stack";
@@ -399,6 +398,7 @@ clicks.addMethod("OPTIONS", new apigw.MockIntegration({
 마지막으로 CDK 애플리케이션을 배포합니다:
 
 ```sh
+cd ~/environment/workshop/cdk
 cdk deploy MythicalMysfits-KinesisFirehose
 ```
 
@@ -421,6 +421,7 @@ cp -r ~/environment/workshop/source/module-5/web/* ~/environment/workshop/web
 이제 S3 호스팅 웹사이트를 업데이트하고 `MythicalMysfits-Website` 스택을 배포합니다:
 
 ```sh
+cd ~/environment/workshop/cdk
 cdk deploy MythicalMysfits-Website
 ```
 

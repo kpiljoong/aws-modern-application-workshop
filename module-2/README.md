@@ -66,7 +66,6 @@ export class NetworkStack extends cdk.Stack {
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
-import { CdkStack } from '../lib/cdk-stack';
 import { WebApplicationStack } from "../lib/web-application-stack";
 import { NetworkStack } from "../lib/network-stack";
 
@@ -80,14 +79,14 @@ const networkStack = new NetworkStack(app, "MythicalMysfits-Network");
 `network-stack.ts` 파일에서 다음 VPC 컨스트럭츠를 정의합니다:
 
 ```typescript
-import cdk = require('@aws-cdk/core');
+import * as cdk from 'aws-cdk-lib';
 
-import ec2 = require("@aws-cdk/aws-ec2");
-import iam = require("@aws-cdk/aws-iam");
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
+import * as iam from 'aws-cdk-lib/aws-iam';
 
 export class NetworkStack extends cdk.Stack {
   public readonly vpc: ec2.Vpc;
-
+  
   constructor(scope: cdk.App, id:string) {
     super(scope, id);
 
@@ -228,7 +227,6 @@ export class EcrStack extends cdk.Stack {
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
-import { CdkStack } from '../lib/cdk-stack';
 import { WebApplicationStack } from "../lib/web-application-stack";
 import { NetworkStack } from "../lib/network-stack";
 import { EcrStack } from "../lib/ecr-stack";
@@ -449,9 +447,8 @@ this.ecsService.service.taskDefinition.addToTaskRolePolicy(
 
 ```typescript
 #!/usr/bin/env node
-
-import cdk = require('@aws-cdk/core');
-import "source-map-support/register";
+import 'source-map-support/register';
+import * as cdk from 'aws-cdk-lib';
 import { WebApplicationStack } from "../lib/web-application-stack";
 import { NetworkStack } from "../lib/network-stack";
 import { EcrStack } from "../lib/ecr-stack";
@@ -590,7 +587,6 @@ CiCdStack 생성자를 변경하여 정의한 속성 객체를 입력 받도록 
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
-import { CdkStack } from '../lib/cdk-stack';
 import { WebApplicationStack } from "../lib/web-application-stack";
 import { NetworkStack } from "../lib/network-stack";
 import { EcrStack } from "../lib/ecr-stack";
@@ -667,7 +663,7 @@ export class CiCdStack extends cdk.Stack {
 
 ```typescript
 import * as codebuild from 'aws-cdk-lib/aws-codebuild';
-import * as codepipelne from 'aws-cdk-lib/aws-codepipeline';
+import * as codepipeline from 'aws-cdk-lib/aws-codepipeline';
 import * as actions from 'aws-cdk-lib/aws-codepipeline-actions';
 import * as iam from 'aws-cdk-lib/aws-iam';
 ```
@@ -903,7 +899,7 @@ cdk deploy MythicalMysfits-CICD
 AWS CodeCommit은 통합을 쉽게하기 위해 git 관련 자격 증명 헬퍼를 제공합니다. 터미널에서 다음 명령을 순서대로 실행하여 git을 설정합니다 (명령은 별다른 결과를 출력하지 않습니다):
 
 ```sh
-git config --global user.name "REPLACE_ME_WITH_YOUR_NAME"
+git config --global user.name REPLACE_ME_WITH_YOUR_NAME
 git config --global user.email REPLACE_ME_WITH_YOUR_EMAIL@example.com
 git config --global credential.helper '!aws codecommit credential-helper $@'
 git config --global credential.UseHttpPath true
