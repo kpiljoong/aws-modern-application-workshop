@@ -376,7 +376,6 @@ const api = new apigw.LambdaRestApi(this, "APIEndpoint", {
 그런 다음 CDK 스택을 다시 배포합니다:
 
 ```sh
-npm run build
 cdk deploy MythicalMysfits-XRay
 ```
 
